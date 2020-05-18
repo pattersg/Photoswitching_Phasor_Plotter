@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.scijava</groupId>
+		<artifactId>pom-scijava</artifactId>
+		<version>22.2.0</version>
+		<relativePath />
+	</parent>
+        
+    <groupId>gov.nih.nibib.biophotonics</groupId>
+    <artifactId>Photoswitching_Phasor_Plotter</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+
+	<name>Photoswitching_Phasor_Plotter</name>
+	<description>A plugin to analyze photoswitching experiments using phasor plotting</description>
+        <url>N/A</url>
+        <inceptionYear>2018</inceptionYear>
+	<organization>
+		<name>N/A</name>
+		<url>N/A</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>The Unlicense</name>
+			<url>http://unlicense.org/</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	
+        <developers>
+		<developer>
+			<id>pattersg</id>
+			<name>George Patterson</name>
+			<email>pattersg@mail.nih.gov</email>
+			<url></url>
+			<organization>NIBIB NIH</organization>
+			<organizationUrl></organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+		</developer>
+	</developers>
+
+        <contributors>
+		<contributor>
+			<name>N/A</name>
+			<url>N/A</url>
+			<properties><id>N/A</id></properties>
+		</contributor>
+	</contributors>
+        
+        <mailingLists>
+		<mailingList>
+			<name>N/A</name>
+			<subscribe>N/A</subscribe>
+			<unsubscribe>N/A</unsubscribe>
+			<post>N/A</post>
+			<archive>N/A</archive>
+		</mailingList>
+	</mailingLists>
+        
+        <scm>
+		<connection>scm:git:git://github.com/pattersg/Photoswitching_Phasor_Plotter</connection>
+		<developerConnection>scm:git:git@github.com/pattersg/Photoswitching_Phasor_Plotter</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/pattersg/Photoswitching_Phasor_Plotter</url>
+	</scm>
+	
+        <issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/pattersg/Photoswitching_Phasor_Plotter/issues</url>
+	</issueManagement>
+	
+        <ciManagement>
+		<system>N/A</system>
+		<url>N/A</url>
+	</ciManagement>
+        
+	<properties>
+                <license.licenseName>N/A</license.licenseName>
+		<license.copyrightOwners>N/A</license.copyrightOwners>
+                
+		<main-class>Photoswitching_Phasor_Plotter</main-class>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>ij</artifactId>
+		</dependency>
+                <dependency>
+			<groupId>org.openmicroscopy</groupId>
+			<artifactId>ome-xml</artifactId>
+		</dependency>
+                <dependency>
+			<groupId>org.openmicroscopy</groupId>
+			<artifactId>ome-common</artifactId>
+		</dependency>
+                <dependency>
+			<groupId>io.scif</groupId>
+			<artifactId>scifio</artifactId>
+		</dependency>
+                <dependency>
+			<groupId>io.scif</groupId>
+			<artifactId>scifio-bf-compat</artifactId>
+		</dependency>
+                <dependency>
+			<groupId>ome</groupId>
+			<artifactId>bio-formats_plugins</artifactId>
+		</dependency>
+                <dependency>
+			<groupId>org.jdesktop</groupId>
+			<artifactId>beansbinding</artifactId>
+                        <version>1.2.1</version>
+		</dependency>
+	</dependencies>
+        
+        
+        <repositories>
+            <repository>
+                <id>imagej.public</id>
+                <url>http://maven.imagej.net/content/groups/public</url>
+            </repository>
+        </repositories>
+        
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>${main-class}</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
