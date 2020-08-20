@@ -187,6 +187,10 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         useTOneHalfEstimate = useTOneEstimateCB.isSelected(); 
         backgroundSubtract = backgroundSubtractCB.isSelected();
         medianFilter = medianFilterCB.isSelected();
+        fitSingle = checkFitSingle.isSelected();
+        fitDouble = checkFitDouble.isSelected();
+        fitTriple = checkFitTriple.isSelected();
+        statusMessageArea.setText("");
     }
 
     /**
@@ -661,8 +665,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         pixelThresholdCutoffLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         pixelThresholdCutoffLabel.setText("Pixel threshold");
 
+        PixelThresholdCutOffTF.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
         PixelThresholdCutOffTF.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-        PixelThresholdCutOffTF.setText("100");
+        PixelThresholdCutOffTF.setText("500");
         PixelThresholdCutOffTF.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 PixelThresholdCutOffTFActionPerformed(evt);
@@ -676,9 +681,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
         maxIterationsLabel.setText("Max iterations");
 
-        maxIterationsTF.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        maxIterationsTF.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
         maxIterationsTF.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-        maxIterationsTF.setText("999");
+        maxIterationsTF.setText("2000");
         maxIterationsTF.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 maxIterationsTFActionPerformed(evt);
@@ -692,7 +697,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
         numRestartsLabel.setText("Number restarts");
 
-        numRestartsTF.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
+        numRestartsTF.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
         numRestartsTF.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
         numRestartsTF.setText("2");
         numRestartsTF.addActionListener(new java.awt.event.ActionListener() {
@@ -707,23 +712,34 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         });
 
         checkFitSingle.setSelected(true);
-        checkFitSingle.setText("Fit Single Exponential with Offset");
+        checkFitSingle.setText("Fit Single Exponential with Offset (Reasonable fit time)");
         checkFitSingle.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 checkFitSingleItemStateChanged(evt);
             }
         });
+        checkFitSingle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkFitSingleActionPerformed(evt);
+            }
+        });
 
-        checkFitDouble.setText("Fit Double Exponential with Offset");
+        checkFitDouble.setText("Fit Double Exponential with Offset (Slow)");
         checkFitDouble.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 checkFitDoubleItemStateChanged(evt);
+            }
+        });
+        checkFitDouble.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkFitDoubleActionPerformed(evt);
             }
         });
 
         Chi2CutoffLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         Chi2CutoffLabel.setText("Chi2 cutoff");
 
+        Chi2CutOffTF.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0.00"))));
         Chi2CutOffTF.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
         Chi2CutOffTF.setText("100.0");
         Chi2CutOffTF.addActionListener(new java.awt.event.ActionListener() {
@@ -737,18 +753,24 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             }
         });
 
-        checkFitTriple.setText("Fit Triple Exponential with Offset");
+        checkFitTriple.setText("Fit Triple Exponential with Offset (Really slow)");
         checkFitTriple.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 checkFitTripleItemStateChanged(evt);
+            }
+        });
+        checkFitTriple.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkFitTripleActionPerformed(evt);
             }
         });
 
         varParamLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         varParamLabel.setText("Vary parameters");
 
+        varParamTF.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0.00"))));
         varParamTF.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-        varParamTF.setText("0.01");
+        varParamTF.setText("0.1");
         varParamTF.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 varParamTFActionPerformed(evt);
@@ -771,7 +793,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                         .addGroup(FittingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(checkFitDouble)
                             .addComponent(checkFitTriple))
-                        .addContainerGap(145, Short.MAX_VALUE))
+                        .addContainerGap(72, Short.MAX_VALUE))
                     .addGroup(FittingLayout.createSequentialGroup()
                         .addComponent(checkFitSingle)
                         .addGap(0, 0, Short.MAX_VALUE))))
@@ -836,7 +858,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
         numCyclesLabel.setText("Number of cycles");
 
-        numCyclesTF.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        numCyclesTF.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
         numCyclesTF.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
         numCyclesTF.setText("1");
         numCyclesTF.addActionListener(new java.awt.event.ActionListener() {
@@ -852,9 +874,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
         imagesPerCycleLabel.setText("Images per cycle");
 
-        imagesPerCycleTF.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
+        imagesPerCycleTF.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
         imagesPerCycleTF.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-        imagesPerCycleTF.setText("100");
+        imagesPerCycleTF.setText("300");
         imagesPerCycleTF.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 imagesPerCycleTFActionPerformed(evt);
@@ -866,6 +888,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             }
         });
 
+        cameraOffsetTF.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
         cameraOffsetTF.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
         cameraOffsetTF.setText("100");
         cameraOffsetTF.addActionListener(new java.awt.event.ActionListener() {
@@ -901,8 +924,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         cameraGainLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         cameraGainLabel.setText("Camera Gain");
 
+        cameraGainTF.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0.00"))));
         cameraGainTF.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-        cameraGainTF.setText("1");
+        cameraGainTF.setText("2.17");
         cameraGainTF.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cameraGainTFActionPerformed(evt);
@@ -2762,6 +2786,11 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             IJ.showMessage("Pixel Fitter", "Please close the existing rate constants image\nSorry, I'm getting confused");
             return;
         }
+        if(!useChA){
+            IJ.showMessage("Pixel Fitter", "You must check at least one Use Channel under the Unmixing Tab\nChannels should be used in alphabetical order");
+            return;
+        }
+
         img = IJ.getImage();
         ImageWindow iwin = img.getWindow();
         iwin.addWindowListener(new WindowAdapter()
@@ -2794,6 +2823,18 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             Logger.getLogger(Photoswitching_Phasor_Plotter.class.getName()).log(Level.SEVERE, null, ex);
         }        
     }//GEN-LAST:event_fitAzeroFixedExponentialActionPerformed
+
+    private void checkFitSingleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkFitSingleActionPerformed
+        fitSingle = checkFitSingle.isSelected();
+    }//GEN-LAST:event_checkFitSingleActionPerformed
+
+    private void checkFitDoubleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkFitDoubleActionPerformed
+        fitDouble = checkFitDouble.isSelected();
+    }//GEN-LAST:event_checkFitDoubleActionPerformed
+
+    private void checkFitTripleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkFitTripleActionPerformed
+        fitTriple = checkFitTriple.isSelected();
+    }//GEN-LAST:event_checkFitTripleActionPerformed
 
     
     
@@ -2996,6 +3037,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         }
         try {
             timeData3 = getTimingPerPlane(id, size, currentZ, currentchannel);
+            //the elapsed time from the start of the experiment 
+            //is pulled from the metadata for each image using Bioformats
+            //If no time data is found in the metadata; the user is prompted to enter a time interval
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -3007,13 +3051,12 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         k2DataG = new double[imageW][imageH][numCycles];
         a3DataG = new double[imageW][imageH][numCycles];
         k3DataG = new double[imageW][imageH][numCycles];
+//3D arrays are initialized for the fit parameters        
         
-        GmData = new double[imageW][imageH][numCycles];
-        GsData = new double[imageW][imageH][numCycles];
-        AZeroData = new double[imageW][imageH][numCycles];
-        
-        double freq = 1/(timeData3[imagesPerCycle-1] - timeData3[0]);
-        Omega = 2*Math.PI*freq*harmonic;
+        if(!fitSingle && !fitDouble && !fitTriple){
+            IJ.showMessage("Fit exponential", "You must check Fit Single, Fit Double, or Fit Triple under the Fitting tab");
+            return;
+        }
 
         if (fitSingle) {
             a2DataG = null;
@@ -3038,7 +3081,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             //IJ.log("number of threads= " + threads.length);
             final double[][] timeDataArrayOfArrays = new double[threads.length][timeData.length];
             final double[][] pixelsArrayOfArrays = new double[threads.length][timeData.length];
-
+            //two 2D arrays are initialized to handle the timedata and the pixel (fluorescence data) during the fitting
+            
             for (int ithread = 0; ithread < threads.length; ithread++) {
                 final int threadIndex = ithread;
                 final int cycleNum = cycle;
@@ -3053,14 +3097,19 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                     @Override
                     public void run() {
                         for (int y = threadIndex * height / threads.length; y < (threadIndex + 1) * height / threads.length; y++) {
-                            if (threadIndex == threads.length - 1) {
+                            //the image is divided into equal sections based on the number of threads (CPUs)
+                            //thus each cpu analyzes a different section of the image
+                            if (threadIndex == (int) Math.ceil(threads.length/2)) {
+                                //this part is to monitor the progress of the fitting
+                                //it monitors the thread running in approximately the center of the image
                                 int startY = threadIndex * height / threads.length;
                                 int endY = (threadIndex + 1) * height / threads.length;
-                                int progress = (int) Math.round(((double) (y - startY) / (endY - startY)) * 100);
+                                int progress = (int) Math.round(((double) (y - startY) / (endY - startY)) * 100.0);
                                 statusMessageArea.setText("Fitting pixels progress: " + progress + " %  of cycle " + (cycleNum + 1) + " of " + numCycles + " total cycles");                                
                                 statusMessageArea.update(statusMessageArea.getGraphics());
                             }
                             for (int x = 0; x < width; x++) {
+                                //the fits are performed line by line within each thread section
                                 for (int z = 0; z < timeData.length; z++) {
                                     timeDataArrayOfArrays[threadIndex][z] = timeData[z];
                                     if (img.isHyperStack()) {
@@ -3069,11 +3118,17 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                     } else {
                                         pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, (cycleNum * imagesPerCycle) + z);
                                     }
+                                    //the pixel values are retrieved slightly differently depending on a hyperstack or not 
                                 }
-                                pixelsArrayOfArrays[threadIndex] = subtractValueFromArray(pixelsArrayOfArrays[threadIndex], (cameraOffset*binFactor*binFactor));
+                                pixelsArrayOfArrays[threadIndex] = subtractValueFromArray(pixelsArrayOfArrays[threadIndex], ((cameraOffset*binFactor*binFactor)));
+                                //subtract the offset from the pixel values
+                                //camera offsets are usually 100 counts per pixel
+                                //binning obviously sums from multiple pixels
                                 double firstframeint = pixelsArrayOfArrays[threadIndex][0];
                                 double lastframeint = pixelsArrayOfArrays[threadIndex][pixelsArrayOfArrays[threadIndex].length - 1];
+                                //to provide an initial guess for the fitting
                                 double tau = findTauEstimate(timeDataArrayOfArrays[threadIndex], pixelsArrayOfArrays[threadIndex], firstframeint, lastframeint);
+                                //to provide an initial estimate of the rate constant
                                 double guess_o = 0;
                                 double guess_a1 = 0;
                                 double guess_k1 = 0;
@@ -3122,6 +3177,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                     guess_k3};
 
                                 if (firstframeint - lastframeint < PixelThresholdCutOff) {
+                                    //fill arrays with NaN if the threshold is not met
                                     if (fitTriple) {
                                         Chi2G[x][y][cycleNum] = Double.NaN;
                                         offsetDataG[x][y][cycleNum] = Double.NaN;
@@ -3132,9 +3188,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                         a3DataG[x][y][cycleNum] = Double.NaN;
                                         k3DataG[x][y][cycleNum] = Double.NaN;
                                         
-                                        GmData[x][y][cycleNum] = Double.NaN;
-                                        GsData[x][y][cycleNum] = Double.NaN;
-                                        AZeroData[x][y][cycleNum] = Double.NaN;
+                                        //GmData[x][y][cycleNum] = Double.NaN;
+                                        //GsData[x][y][cycleNum] = Double.NaN;
+                                        //AZeroData[x][y][cycleNum] = Double.NaN;
                                     }
                                     if (fitDouble) {
                                         Chi2G[x][y][cycleNum] = Double.NaN;
@@ -3144,9 +3200,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                         a2DataG[x][y][cycleNum] = Double.NaN;
                                         k2DataG[x][y][cycleNum] = Double.NaN;
                                         
-                                        GmData[x][y][cycleNum] = Double.NaN;
-                                        GsData[x][y][cycleNum] = Double.NaN;
-                                        AZeroData[x][y][cycleNum] = Double.NaN;
+                                        //GmData[x][y][cycleNum] = Double.NaN;
+                                        //GsData[x][y][cycleNum] = Double.NaN;
+                                        //AZeroData[x][y][cycleNum] = Double.NaN;
 
                                     }
                                     if (fitSingle) {
@@ -3155,16 +3211,15 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                         a1DataG[x][y][cycleNum] = Double.NaN;
                                         k1DataG[x][y][cycleNum] = Double.NaN;
                                         
-                                        GmData[x][y][cycleNum] = Double.NaN;
-                                        GsData[x][y][cycleNum] = Double.NaN;
-                                        AZeroData[x][y][cycleNum] = Double.NaN;
+                                        //GmData[x][y][cycleNum] = Double.NaN;
+                                        //GsData[x][y][cycleNum] = Double.NaN;
+                                        //AZeroData[x][y][cycleNum] = Double.NaN;
                                     }
 
                                 } else {
 
                                     double[] fittedParam = fitExponentialFunction(timeDataArrayOfArrays[threadIndex], pixelsArrayOfArrays[threadIndex], fitparam, maxiteration);
                                     double Chi2 = fittedParam[0];
-
                                     if (Chi2 < Chi2CutOff) {
                                         if (fitTriple) {
                                             Chi2G[x][y][cycleNum] = (float) fittedParam[0];
@@ -3178,9 +3233,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                             
                                             double totalA = fittedParam[2]+fittedParam[4]+fittedParam[6];
                                             
-                                            GmData[x][y][cycleNum] = ((fittedParam[2]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3]))))) + ((fittedParam[4]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[5])*(1/fittedParam[5]))))) + ((fittedParam[6]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[7])*(1/fittedParam[7])))));
-                                            GsData[x][y][cycleNum] = ((fittedParam[2]/totalA)*((Omega*1/fittedParam[3])/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3]))))) + ((fittedParam[4]/totalA)*((Omega*1/fittedParam[5])/(1+((Omega*Omega)*(1/fittedParam[5])*(1/fittedParam[5]))))) + ((fittedParam[6]/totalA)*((Omega*1/fittedParam[7])/(1+((Omega*Omega)*(1/fittedParam[7])*(1/fittedParam[7])))));
-                                            AZeroData[x][y][cycleNum] = pixelsArrayOfArrays[threadIndex][0];
+                                            //GmData[x][y][cycleNum] = ((fittedParam[2]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3]))))) + ((fittedParam[4]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[5])*(1/fittedParam[5]))))) + ((fittedParam[6]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[7])*(1/fittedParam[7])))));
+                                            //GsData[x][y][cycleNum] = ((fittedParam[2]/totalA)*((Omega*1/fittedParam[3])/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3]))))) + ((fittedParam[4]/totalA)*((Omega*1/fittedParam[5])/(1+((Omega*Omega)*(1/fittedParam[5])*(1/fittedParam[5]))))) + ((fittedParam[6]/totalA)*((Omega*1/fittedParam[7])/(1+((Omega*Omega)*(1/fittedParam[7])*(1/fittedParam[7])))));
+                                            //AZeroData[x][y][cycleNum] = pixelsArrayOfArrays[threadIndex][0];
                                                                                                                                
                                         }
                                         if (fitDouble) {
@@ -3193,9 +3248,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
                                             double totalA = fittedParam[2]+fittedParam[4];
                                             
-                                            GmData[x][y][cycleNum] = ((fittedParam[2]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3]))))) + ((fittedParam[4]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[5])*(1/fittedParam[5])))));
-                                            GsData[x][y][cycleNum] = ((fittedParam[2]/totalA)*((Omega*1/fittedParam[3])/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3]))))) + ((fittedParam[4]/totalA)*((Omega*1/fittedParam[5])/(1+((Omega*Omega)*(1/fittedParam[5])*(1/fittedParam[5])))));
-                                            AZeroData[x][y][cycleNum] = pixelsArrayOfArrays[threadIndex][0];
+                                            //GmData[x][y][cycleNum] = ((fittedParam[2]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3]))))) + ((fittedParam[4]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[5])*(1/fittedParam[5])))));
+                                            //GsData[x][y][cycleNum] = ((fittedParam[2]/totalA)*((Omega*1/fittedParam[3])/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3]))))) + ((fittedParam[4]/totalA)*((Omega*1/fittedParam[5])/(1+((Omega*Omega)*(1/fittedParam[5])*(1/fittedParam[5])))));
+                                            //AZeroData[x][y][cycleNum] = pixelsArrayOfArrays[threadIndex][0];
 
                                         }
                                         if (fitSingle) {
@@ -3206,12 +3261,13 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
  
                                             double totalA = fittedParam[2];
                                             
-                                            GmData[x][y][cycleNum] = ((fittedParam[2]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3])))));
-                                            GsData[x][y][cycleNum] = ((fittedParam[2]/totalA)*((Omega*1/fittedParam[3])/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3])))));
-                                            AZeroData[x][y][cycleNum] = pixelsArrayOfArrays[threadIndex][0];
+                                            //GmData[x][y][cycleNum] = ((fittedParam[2]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3])))));
+                                            //GsData[x][y][cycleNum] = ((fittedParam[2]/totalA)*((Omega*1/fittedParam[3])/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3])))));
+                                            //AZeroData[x][y][cycleNum] = pixelsArrayOfArrays[threadIndex][0];
 
                                         }
                                     } else {
+                                        //if the Chi2 is not below the threshold fill the arrays with NaN
                                         if (fitTriple) {
                                             Chi2G[x][y][cycleNum] = Double.NaN;
                                             offsetDataG[x][y][cycleNum] = Double.NaN;
@@ -3222,9 +3278,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                             a3DataG[x][y][cycleNum] = Double.NaN;
                                             k3DataG[x][y][cycleNum] = Double.NaN;
                                             
-                                            GmData[x][y][cycleNum] = Double.NaN;
-                                            GsData[x][y][cycleNum] = Double.NaN;
-                                            AZeroData[x][y][cycleNum] = Double.NaN;
+                                            //GmData[x][y][cycleNum] = Double.NaN;
+                                            //GsData[x][y][cycleNum] = Double.NaN;
+                                            //AZeroData[x][y][cycleNum] = Double.NaN;
                                         }
                                         if (fitDouble) {
                                             Chi2G[x][y][cycleNum] = Double.NaN;
@@ -3234,9 +3290,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                             a2DataG[x][y][cycleNum] = Double.NaN;
                                             k2DataG[x][y][cycleNum] = Double.NaN;
                                             
-                                            GmData[x][y][cycleNum] = Double.NaN;
-                                            GsData[x][y][cycleNum] = Double.NaN;
-                                            AZeroData[x][y][cycleNum] = Double.NaN;
+                                            //GmData[x][y][cycleNum] = Double.NaN;
+                                            //GsData[x][y][cycleNum] = Double.NaN;
+                                            //AZeroData[x][y][cycleNum] = Double.NaN;
                                         }
                                         if (fitSingle) {
                                             Chi2G[x][y][cycleNum] = Double.NaN;
@@ -3244,9 +3300,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                             a1DataG[x][y][cycleNum] = Double.NaN;
                                             k1DataG[x][y][cycleNum] = Double.NaN;
                                             
-                                            GmData[x][y][cycleNum] = Double.NaN;
-                                            GsData[x][y][cycleNum] = Double.NaN;
-                                            AZeroData[x][y][cycleNum] = Double.NaN;
+                                            //GmData[x][y][cycleNum] = Double.NaN;
+                                            //GsData[x][y][cycleNum] = Double.NaN;
+                                            //AZeroData[x][y][cycleNum] = Double.NaN;
                                         }
                                     }
                                 }
@@ -3260,15 +3316,16 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             statusMessageArea.setText("Fitting time: " + timeToCompletion);                                
             statusMessageArea.update(statusMessageArea.getGraphics());
             if (LogFitTime == true) {
+                //can be helpful if running multiple cycles
                 IJ.log("Image " + id + " cycle " + cycle + " processing time = " + (timeToCompletion / 1000) + " sec");
             }
         } //end of cycles 
-        phasorPlot = plotPhasorPlot(GmData, GsData, imageW, imageH, numCycles);
-        phasorPlotWin = phasorPlot.show();
         wmkImage = createWeightedRateConstantsImage();
     }
 
     public void psFRET_Fit_Azero_Exponential() throws Exception {
+        //this method is the same as above except that the rate constants are fixed and only the fractional components are fitted
+        
         IJ.resetMinAndMax(img);
         //in case the image is opened without using the plugin BioFormats button
         String dir0 = IJ.getDirectory("image");
@@ -3426,6 +3483,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     
     
     public double findTauEstimate(double[] x, double[] y, double startIntensity, double endIntensity) {
+        //this method is used to find an initial guess for the rate constant
         double tauToReturn = 1;
         double previousIntensity = startIntensity - endIntensity;
         for (int t = 0; t < y.length; t++) {
@@ -3447,136 +3505,222 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     */
 
     private double[] fitExponentialFunction(double[] x, double[] y, double[] paramsPassed, int maxIter) {
-        double[] params = new double[paramsPassed.length - 1];
-        System.arraycopy(paramsPassed, 1, params, 0, params.length);
-        params[1] = Math.sqrt(params[1]);
-        params[2] = Math.sqrt(params[2]);
-        params[3] = Math.sqrt(params[3]);
-        params[4] = Math.sqrt(params[4]);
-        params[5] = Math.sqrt(params[5]);
-        params[6] = Math.sqrt(params[6]);
+        double[] params = new double[0];
+        if (fitTriple) {
+            params = new double[paramsPassed.length - 1];
+            System.arraycopy(paramsPassed, 1, params, 0, params.length);
+            params[1] = Math.sqrt(params[1]);
+            params[2] = Math.sqrt(params[2]);
+            params[3] = Math.sqrt(params[3]);
+            params[4] = Math.sqrt(params[4]);
+            params[5] = Math.sqrt(params[5]);
+            params[6] = Math.sqrt(params[6]);
+            //The initial guesses are converted to their square root
+            //The fitting equations use the squares of the components which we want to force to be positive
+        }
+        if (fitDouble) {
+            params = new double[paramsPassed.length - 3];
+            System.arraycopy(paramsPassed, 1, params, 0, params.length);
+            params[1] = Math.sqrt(params[1]);
+            params[2] = Math.sqrt(params[2]);
+            params[3] = Math.sqrt(params[3]);
+            params[4] = Math.sqrt(params[4]);
+            //The initial guesses are converted to their square root
+            //The fitting equations use the squares of the components which we want to force to be positive
+        }
+        double[] returnArray = new double[paramsPassed.length];
+        Arrays.fill(returnArray, 0);
 
         double[] paramVariations = multiplyArrayByValue(params, varParam);
         CurveFitter cf = new CurveFitter(x, y);
-        cf.setOffsetMultiplySlopeParams(-1, 0, -1);
-        cf.setMaxIterations(maxIter);
-        cf.doCustomFit(new UserFunction() {
-            @Override
-            public double userFunction(double[] par, double x) {
-                if (fitTriple) {
-                    //return par[0] + par[1] * Math.exp(-par[2] * x) + par[3] * Math.exp(-par[4] * x) + par[5] * Math.exp(-par[6] * x);
-                    return par[0] * (1 + par[1] * par[1] * Math.exp(-par[2] * par[2] * x) + par[3] * par[3] * Math.exp(-par[4] * par[4] * x) + par[5] * par[5] * Math.exp(-par[6] * par[6] * x));
+
+        if (fitDouble || fitTriple) {
+            //Have to use a user function for the 2 and 3 component fits
+            //these are slow and not terribly accurate for the 3
+            
+            //cf.setOffsetMultiplySlopeParams(0, -1, -1);
+            cf.setMaxIterations(maxIter);
+            cf.doCustomFit(new UserFunction() {
+                @Override
+                public double userFunction(double[] par, double x) {
+                    if (fitTriple) {
+                        //return par[0] + par[1] * Math.exp(-par[2] * x) + par[3] * Math.exp(-par[4] * x) + par[5] * Math.exp(-par[6] * x);
+                        //return par[0] * (1 + par[1] * par[1] * Math.exp(-par[2] * par[2] * x) + par[3] * par[3] * Math.exp(-par[4] * par[4] * x) + par[5] * par[5] * Math.exp(-par[6] * par[6] * x));
+                        return par[0] + (par[1] * par[1] * Math.exp(-par[2] * par[2] * x)) + (par[3] * par[3] * Math.exp(-par[4] * par[4] * x)) + (par[5] * par[5] * Math.exp(-par[6] * par[6] * x));
+                    } else {
+                        //return par[0] + par[1] * Math.exp(-par[2] * x) + par[3] * Math.exp(-par[4] * x);
+                        //return par[0] * (1 + par[1] * par[1] * Math.exp(-par[2] * par[2] * x) + par[3] * par[3] * Math.exp(-par[4] * par[4] * x));
+                        return par[0] + (par[1] * par[1] * Math.exp(-par[2] * par[2] * x)) + (par[3] * par[3] * Math.exp(-par[4] * par[4] * x));
+                    }
                 }
-                if (fitDouble) {
-                    //return par[0] + par[1] * Math.exp(-par[2] * x) + par[3] * Math.exp(-par[4] * x);
-                    return par[0] * (1 + par[1] * par[1] * Math.exp(-par[2] * par[2] * x) + par[3] * par[3] * Math.exp(-par[4] * par[4] * x));
-                } else //return par[0] + par[1] * Math.exp(-par[2] * x);
-                {
-                    return par[0] * (1 + par[1] * par[1] * Math.exp(-par[2] * par[2] * x));
-                }
+            }, params.length, "", params, paramVariations, false);
+            double[] paramToReturn = cf.getParams();
+            double Chi2ToReturn = calculateReducedChi2(cf.getResiduals(), y);
+            returnArray[0] = Chi2ToReturn;
+            returnArray[1] = paramToReturn[0];
+
+            if (fitTriple) {//Since the faster and slower components can be any of the three, this section rearranges them for final output          
+                double[] arrayOfValues = new double[3];
+                arrayOfValues[0] = paramToReturn[2];
+                arrayOfValues[1] = paramToReturn[4];
+                arrayOfValues[2] = paramToReturn[6];
+
+                int[] arrayOfIndices = new int[3];
+                arrayOfIndices[0] = 2;
+                arrayOfIndices[1] = 4;
+                arrayOfIndices[2] = 6;
+
+                int maxValueIndex = getIndexOfMaxValue(arrayOfIndices, arrayOfValues);
+                int minValueIndex = getIndexOfMinValue(arrayOfIndices, arrayOfValues);
+                int midValueIndex = getIndexOfMiddle(arrayOfIndices, arrayOfValues);
+
+                returnArray[2] = paramToReturn[maxValueIndex - 1] * paramToReturn[maxValueIndex - 1];
+                returnArray[3] = Math.pow(paramToReturn[maxValueIndex], 2);
+                returnArray[4] = paramToReturn[midValueIndex - 1] * paramToReturn[midValueIndex - 1];
+                returnArray[5] = Math.pow(paramToReturn[midValueIndex], 2);
+                returnArray[6] = paramToReturn[minValueIndex - 1] * paramToReturn[minValueIndex - 1];
+                returnArray[7] = Math.pow(paramToReturn[minValueIndex], 2);
             }
-        }, params.length, "", params, null, false);
-        double[] paramToReturn = cf.getParams();
-        double Chi2ToReturn = calculateReducedChi2(cf.getResiduals(), y);
-        double[] returnArray = new double[paramsPassed.length];
-        Arrays.fill(returnArray, 0);
-        returnArray[0] = Chi2ToReturn;
-        returnArray[1] = paramToReturn[0];
-        
-        if (fitTriple) {
-            /*returnArray[2] = paramToReturn[0] * paramToReturn[1] * paramToReturn[1];
-            returnArray[3] = Math.pow(paramToReturn[2], 2);
-            returnArray[4] = paramToReturn[0] * paramToReturn[3] * paramToReturn[3];
-            returnArray[5] = Math.pow(paramToReturn[4], 2);
-            returnArray[6] = paramToReturn[0] * paramToReturn[5] * paramToReturn[5];
-            returnArray[7] = Math.pow(paramToReturn[6], 2);
-            */
-            double [] arrayOfValues = new double [3];
-            arrayOfValues[0]=paramToReturn[2];
-            arrayOfValues[1]=paramToReturn[4];
-            arrayOfValues[2]=paramToReturn[6];
-            
-            int [] arrayOfIndices = new int [3];
-            arrayOfIndices[0]=2;
-            arrayOfIndices[1]=4;
-            arrayOfIndices[2]=6;
-            
-            int maxValueIndex = getIndexOfMaxValue(arrayOfIndices,arrayOfValues);
-            int minValueIndex = getIndexOfMinValue(arrayOfIndices,arrayOfValues);
-            int midValueIndex = getIndexOfMiddle(arrayOfIndices,arrayOfValues);
-            
-            returnArray[2] = paramToReturn[0] * paramToReturn[maxValueIndex-1] * paramToReturn[maxValueIndex-1];
-            returnArray[3] = Math.pow(paramToReturn[maxValueIndex], 2);
-            returnArray[4] = paramToReturn[0] * paramToReturn[midValueIndex-1] * paramToReturn[midValueIndex-1];
-            returnArray[5] = Math.pow(paramToReturn[midValueIndex], 2);
-            returnArray[6] = paramToReturn[0] * paramToReturn[minValueIndex-1] * paramToReturn[minValueIndex-1];
-            returnArray[7] = Math.pow(paramToReturn[minValueIndex], 2);
-        }
-        if (fitDouble) {
-            /*returnArray[2] = paramToReturn[0] * paramToReturn[1] * paramToReturn[1];
-            returnArray[3] = Math.pow(paramToReturn[2], 2);
-            returnArray[4] = paramToReturn[0] * paramToReturn[3] * paramToReturn[3];
-            returnArray[5] = Math.pow(paramToReturn[4], 2);
-            */
-            
-            double [] arrayOfValues = new double [2];
-            arrayOfValues[0]=paramToReturn[2];
-            arrayOfValues[1]=paramToReturn[4];
-            
-            int [] arrayOfIndices = new int [2];
-            arrayOfIndices[0]=2;
-            arrayOfIndices[1]=4;
-            
-            int maxValueIndex = getIndexOfMaxValue(arrayOfIndices,arrayOfValues);
-            int minValueIndex = getIndexOfMinValue(arrayOfIndices,arrayOfValues);
-            
-            returnArray[2] = paramToReturn[0] * paramToReturn[maxValueIndex-1] * paramToReturn[maxValueIndex-1];
-            returnArray[3] = Math.pow(paramToReturn[maxValueIndex], 2);
-            returnArray[4] = paramToReturn[0] * paramToReturn[minValueIndex-1] * paramToReturn[minValueIndex-1];
-            returnArray[5] = Math.pow(paramToReturn[minValueIndex], 2);
-        }
-        if (fitSingle) {
-            returnArray[2] = paramToReturn[0] * paramToReturn[1] * paramToReturn[1];
-            returnArray[3] = Math.pow(paramToReturn[2], 2);
+            if (fitDouble) {//Since the faster and slower components can be either of the two, this section rearranges them for final output           
+                double[] arrayOfValues = new double[2];
+                arrayOfValues[0] = paramToReturn[2];
+                arrayOfValues[1] = paramToReturn[4];
+
+                int[] arrayOfIndices = new int[2];
+                arrayOfIndices[0] = 2;
+                arrayOfIndices[1] = 4;
+
+                int maxValueIndex = getIndexOfMaxValue(arrayOfIndices, arrayOfValues);
+                int minValueIndex = getIndexOfMinValue(arrayOfIndices, arrayOfValues);
+
+                returnArray[2] = paramToReturn[maxValueIndex - 1] * paramToReturn[maxValueIndex - 1];
+                returnArray[3] = Math.pow(paramToReturn[maxValueIndex], 2);
+                returnArray[4] = paramToReturn[minValueIndex - 1] * paramToReturn[minValueIndex - 1];
+                returnArray[5] = Math.pow(paramToReturn[minValueIndex], 2);
+            }
+        } else {
+            //for the single exponential with offset fit
+            //we use the built in version
+            //we found it to be ~5 faster than the same type in the user function
+            cf = new CurveFitter(x, y);
+            double errotTol = 10;
+            double[] fitparam = {
+                paramsPassed[2],
+                paramsPassed[3],
+                paramsPassed[1],
+                maxiteration,
+                numRestarts,
+                errotTol
+            };
+            cf.setInitialParameters(fitparam);
+            cf.doFit(11); //exponential decay with offset: (A*exp^(-k*t))+offset
+            double[] fittedParam = cf.getParams();
+            double R2 = cf.getFitGoodness();
+            double[] residuals = cf.getResiduals();
+            double Chi2 = calculateReducedChi2(residuals, y);
+
+            returnArray[0] = Chi2;
+            returnArray[1] = fittedParam[2];
+            returnArray[2] = fittedParam[0];
+            returnArray[3] = fittedParam[1];
         }
         return returnArray;
     }
 
     private double[] fitAzeroExponentialFunction(double[] x, double[] y, double[] paramsPassed, int maxIter) {
-        double[] params = new double[paramsPassed.length - 1];
-        System.arraycopy(paramsPassed, 1, params, 0, params.length);
-        params[1] = Math.sqrt(params[1]);
-        params[2] = Math.sqrt(params[2]);
-        params[3] = Math.sqrt(params[3]);
-        params[4] = Math.sqrt(params[4]);
-        params[5] = Math.sqrt(params[5]);
-
+        //this is the method fitting only the fractional contributions
+        //it assumes that rate constants have been measured previously and input into the plugin gui
+        double[] params = new double[0];
+        if (useChA && useChB && useChC && useChD && useChE) {
+            params = new double[paramsPassed.length - 1];
+            System.arraycopy(paramsPassed, 1, params, 0, params.length);
+            params[1] = Math.sqrt(params[1]);//converting to the square root and then including the squares in the equation forces these to be positive
+            params[2] = Math.sqrt(params[2]);
+            params[3] = Math.sqrt(params[3]);
+            params[4] = Math.sqrt(params[4]);
+            params[5] = Math.sqrt(params[5]);
+        }
+        if (useChA && useChB && useChC && useChD && !useChE) {
+            params = new double[paramsPassed.length - 2];
+            System.arraycopy(paramsPassed, 1, params, 0, params.length);
+            params[1] = Math.sqrt(params[1]);//converting to the square root and then including the squares in the equation forces these to be positive
+            params[2] = Math.sqrt(params[2]);
+            params[3] = Math.sqrt(params[3]);
+            params[4] = Math.sqrt(params[4]);
+        }
+        if (useChA && useChB && useChC && !useChD && !useChE) {
+            params = new double[paramsPassed.length - 3];
+            System.arraycopy(paramsPassed, 1, params, 0, params.length);
+            params[1] = Math.sqrt(params[1]);//converting to the square root and then including the squares in the equation forces these to be positive
+            params[2] = Math.sqrt(params[2]);
+            params[3] = Math.sqrt(params[3]);
+        }
+        if (useChA && useChB && !useChC && !useChD && !useChE) {
+            params = new double[paramsPassed.length - 4];
+            System.arraycopy(paramsPassed, 1, params, 0, params.length);
+            params[1] = Math.sqrt(params[1]);//converting to the square root and then including the squares in the equation forces these to be positive
+            params[2] = Math.sqrt(params[2]);
+        }
+        if (useChA && !useChB && !useChC && !useChD && !useChE) {
+            params = new double[paramsPassed.length - 5];
+            System.arraycopy(paramsPassed, 1, params, 0, params.length);
+            params[1] = Math.sqrt(params[1]);//converting to the square root and then including the squares in the equation forces these to be positive
+        }
+       
         double[] paramVariations = multiplyArrayByValue(params, varParam);
         CurveFitter cf = new CurveFitter(x, y);
-        cf.setOffsetMultiplySlopeParams(-1, 0, -1);
-        cf.setMaxIterations(maxIter);
+        cf.setOffsetMultiplySlopeParams(-1, -1, -1);
+        cf.setMaxIterations(maxIter);      
         cf.doCustomFit(new UserFunction() {
             @Override
             public double userFunction(double[] par, double x) {
-                return par[0] * (1 + par[1] * par[1] * Math.exp(-chA_Kmean * x) + par[2] * par[2] * Math.exp(-chB_Kmean * x) + par[3] * par[3] * Math.exp(-chC_Kmean * x) + par[4] * par[4] * Math.exp(-chD_Kmean * x) + par[5] * par[5] * Math.exp(-chE_Kmean * x));
+                if (useChA && useChB && useChC && useChD && useChE){
+                    return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x)) + (par[2] * par[2] * Math.exp(-chB_Kmean * x)) + (par[3] * par[3] * Math.exp(-chC_Kmean * x)) + (par[4] * par[4] * Math.exp(-chD_Kmean * x)) + (par[5] * par[5] * Math.exp(-chE_Kmean * x));                
+                }
+                if (useChA && useChB && useChC && useChD && !useChE){
+                    return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x)) + (par[2] * par[2] * Math.exp(-chB_Kmean * x)) + (par[3] * par[3] * Math.exp(-chC_Kmean * x)) + (par[4] * par[4] * Math.exp(-chD_Kmean * x));
+                }
+                if (useChA && useChB && useChC && !useChD && !useChE){
+                    return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x)) + (par[2] * par[2] * Math.exp(-chB_Kmean * x)) + (par[3] * par[3] * Math.exp(-chC_Kmean * x));
+                }
+                if (useChA && useChB && !useChC && !useChD && !useChE){
+                    return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x)) + (par[2] * par[2] * Math.exp(-chB_Kmean * x));
+                }
+                if (useChA && !useChB && !useChC && !useChD && !useChE){
+                    return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x));
+                }
+                else{
+                    return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x));
+                }
             }
-        }, params.length, "", params, null, false);
+        }, params.length, "", params, null, false);             
         double[] paramToReturn = cf.getParams();
         double Chi2ToReturn = calculateReducedChi2(cf.getResiduals(), y);
         double[] returnArray = new double[paramsPassed.length];
         Arrays.fill(returnArray, 0);
         returnArray[0] = Chi2ToReturn;
         returnArray[1] = paramToReturn[0];
-        returnArray[2] = paramToReturn[0] * paramToReturn[1] * paramToReturn[1];
-        returnArray[3] = paramToReturn[0] * paramToReturn[2] * paramToReturn[2];
-        returnArray[4] = paramToReturn[0] * paramToReturn[3] * paramToReturn[3];
-        returnArray[5] = paramToReturn[0] * paramToReturn[4] * paramToReturn[4];
-        returnArray[6] = paramToReturn[0] * paramToReturn[5] * paramToReturn[5];
-
+        if (useChA) {
+            returnArray[2] = paramToReturn[1] * paramToReturn[1];//these are the square roots; convert back to the fractional contributions
+        }
+        if (useChB) {
+            returnArray[3] = paramToReturn[2] * paramToReturn[2];
+        }
+        if (useChC) {
+            returnArray[4] = paramToReturn[3] * paramToReturn[3];
+        }
+        if (useChD) {
+            returnArray[5] = paramToReturn[4] * paramToReturn[4];
+        }
+        if (useChE) {
+            returnArray[6] = paramToReturn[5] * paramToReturn[5];
+        }
         return returnArray;
     }
         
     public double[] getTheFit(double[] fitParameters, double[] timePoints) {
+        //returns values based on fit parameters
+        //these are used in plotting since the residuals can be directly returned from the fits
         double[] theFit = new double[timePoints.length];
         for (int tp = 0; tp < timePoints.length; tp++) {
             if(fitTriple)
@@ -3590,6 +3734,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     }
 
     public double calculateChi2(double[] residualArray, double[] theFitArray) {
+        //returns Pearson's Chi square; probably less helpful than the reduced Chi2
         double chi2ToReturn = 0;
         double[] residualArray2 = multiplyTwoArrays(residualArray, residualArray);
         double[] arrayToSum = divideTwoArrays(residualArray2, theFitArray);
@@ -3602,6 +3747,12 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     }
     
     public double calculateReducedChi2(double[] residualArray, double[] dataArray) {
+        //returns a reduced Chi2
+        //pixel values are converted into photoelectrons using the camera gain
+        //since we we also bin pixels, are using a camera and we are still limited by diffraction
+        //pixels within the PSF are expected to show some correlated noise
+        //thus covariance within the PSF is used toi estimate the variance
+        //along with the number of photoelectrons when calculating the weighted reduced Chi2
         double AiryRadius = 1.22*lambda/NA;         
         double PSFArea = Math.PI*AiryRadius*AiryRadius;        
         double numPixelsInPSF = PSFArea/(pixSize*pixSize);
@@ -3619,19 +3770,25 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         //number of unbinned pixels (number of actual measurements) in a PSF
         //these would be the camera pixels which may have correlated noise
         //this is more of a problem with larger Rois
+        //I don't think this is an issue with TCSPC FLIM imaging, which the field from which I'm trying to borrow methods
         dataArray=addTwoArrays(dataArray,coVarArray);//total variance
         
         for(int da=0;da<dataArray.length;da++){
-            sumWeightedVariance += (1/dataArray[da]);
+            if(dataArray[da]>0)//if the data are negative or zero, do not use in Chi2 determination
+                sumWeightedVariance += (1/dataArray[da]);
         }
         weightedAverageVariance = sumWeightedVariance/dataArray.length;
         double[] weightArray = new double[dataArray.length];
         for(int wa=0;wa<dataArray.length;wa++){
-            weightArray[wa] = (1/dataArray[wa])/weightedAverageVariance;
+            if(dataArray[wa]>0)//if the data are negative or zero, do not use in Chi2 determination
+                weightArray[wa] = (1/dataArray[wa])/weightedAverageVariance;
         }
         double[] residualArray2 = multiplyTwoArrays(residualArray, residualArray);
-        double[] arrayToSum = multiplyTwoArrays(residualArray2, weightArray);
+        //double[] arrayToSum = multiplyTwoArrays(residualArray2, weightArray);
+        double[] arrayToSum = new double[residualArray2.length];
         for (int tp = 0; tp < arrayToSum.length; tp++) {
+            if(dataArray[tp]>0)
+                arrayToSum[tp]=residualArray2[tp]*weightArray[tp];
             if (!Double.isInfinite(arrayToSum[tp])) {               
                 chi2ToReturn += arrayToSum[tp];
             }
@@ -3654,6 +3811,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 //****************Fit and Data Plotting, Profiling, etc.**********************************
     
     double[] getTAxisProfile() {
+        //This is used to get a background trace if needed.
         img = IJ.getImage();
         Roi roi = img.getRoi();
         if (roi == null) {
@@ -3681,7 +3839,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             ImageProcessor ip = img.getProcessor();
             ip.setRoi(roi);
             ImageStatistics stats = ImageStatistics.getStatistics(ip, MEAN, cal);
-            values[i - 1] = ((double) stats.mean - cameraOffset*binFactor*binFactor);//*pixCount;
+            values[i - 1] = ((double) stats.mean - cameraOffset*binFactor*binFactor);
         }
         if (img.getNFrames() == 1) {
             img.setZ(1);
@@ -3697,6 +3855,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     }
 
     public void setUpListeners() {
+        //This sets up the mouse listeners for examining the fits of individual pixels after a fitting routine
         String[] imageTitles = WindowManager.getImageTitles();
         listenersRemoved = false;
         ImageWindow win = img.getWindow();
@@ -3745,12 +3904,14 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
     @Override
     public void mousePressed(MouseEvent e) {
-//Gets the pixel values through a single point at (x,y). 
+    //Gets the pixel values through a single point at (x,y). 
         int mag = (int) img.getCanvas().getMagnification();
         Rectangle imgr = img.getCanvas().getSrcRect();
         int magRC = (int) wmkImage.getCanvas().getMagnification();
         Rectangle imgRC = wmkImage.getCanvas().getSrcRect();
         if(mag>magRC){
+            //this part is dealing with changes in zoom factor in case 
+            //you need to zoom into a specific region to pick a pixel to examine
             wmkImage.getCanvas().setMagnification(mag);
             //rateConstantImage.getCanvas().zoomIn(mag*img.getWidth(), mag*img.getHeight());
             wmkImage.getCanvas().setSourceRect(imgr);
@@ -3768,6 +3929,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         ypoint = e.getY()/mag;
         float[] cTable = img.getCalibration().getCTable();
         if (img.isHyperStack()) {
+            //the pixel values are retrieved different depending on hyperstack or not
             for (int p = 1; p <= img.getNFrames(); p++) {
                 int z2 = img.getStackIndex(img.getC(), img.getZ(), p) - 1;
                 values[p - 1] = (stack.getVoxel(xpoint, ypoint, z2)-(cameraOffset*binFactor*binFactor));
@@ -3799,6 +3961,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     }
 
     void updateProfile(double[] x, double[] y) {
+        //updates the plots, fits, and residuals
         if (!isSelection()) {
             return;
         }
@@ -3851,6 +4014,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                     fitToAdd[(c * imagesPerCycle) + i] = fitPerCycle[i];
                     yForResiduals[(c * imagesPerCycle) + i] = y[(c * imagesPerCycle) + i];
                 }
+                //the following adds the fits as the fit parameters to the plots
                 plot.add("line", x4Plot, fitPerCycle);
                 String labelToAddChi2 = "Chi2=" + String.valueOf((double) Math.round(fitValues[0] * 1000) / 1000);
                 String labelToAddC = "offset=" + String.valueOf((double) Math.round(fitValues[1] * 1000) / 1000);
@@ -4078,8 +4242,6 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                         pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, (cycleNum * imagesPerCycle) + z) - (cameraOffset*binFactor*binFactor);
                                     }
                                 }
-                                //if(backgroundSubtract)
-                                    //pixelsArrayOfArrays[threadIndex]=subtractArrayFromArray(pixelsArrayOfArrays[threadIndex], backGroundArrayOfArrays[threadIndex]);
                                 if(pixelsArrayOfArrays[threadIndex][0]>=threshold){
                                     double [] gmArray = new double [2];
                                     double [] gsArray = new double [2];
@@ -4087,6 +4249,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                     double Gm = 0;
                                     double Gs = 0;
                                     if (backgroundSubtract) {
+                                        //the calculate CoorectedGmGs method subtracts a measured background
                                         GArray = calculateCorrectedGmGs(timeDataArrayOfArrays[threadIndex], pixelsArrayOfArrays[threadIndex], backGroundArrayOfArrays[threadIndex], Omega);
                                         Gm = GArray[0];
                                         Gs = GArray[1];
@@ -4107,6 +4270,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                         GsData[x][y][cycleNum] = Gs;
 
                                     if (useTOneHalfEstimate) {
+                                        //here a t1/2 is estimated and converted into a tau estimate
+                                        //something like this is probably fine for single exponential data
+                                        //but will likely fail for multi-exponential data
                                         double[] tOneHalfOffsetEst = findTOneHalfEstimate(timeDataArrayOfArrays[threadIndex], pixelsArrayOfArrays[threadIndex]);
                                         double tOneHalfRateEst = Math.log(2) / tOneHalfOffsetEst[1];
                                         rateDataFromPhasor[x][y][cycleNum] = tOneHalfRateEst;
@@ -4123,6 +4289,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                         //pixelSumData[x][y][cycleNum] = gmArray[1];
                                     }
                                 } else {
+                                    //if the pixel values are not above the threshold
+                                    //fill arrays with NaN
                                     GmData[x][y][cycleNum] = Double.NaN;
                                     GsData[x][y][cycleNum] = Double.NaN;
                                     rateDataFromPhasor[x][y][cycleNum] = Double.NaN;
@@ -4162,6 +4330,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
 
     public double getTheOffset(double[] x, double[] y) {
+        //this measures a mean value for the last 10 data points in a decay
+        //a dubious attempt to deal with background
         double[] last10YArray = new double[10];
         System.arraycopy(y, y.length-10, last10YArray, 0, 10);
         //CurveFitter cf = new CurveFitter(x, logYArray);
@@ -4173,36 +4343,35 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     }
     
     public double[] findTOneHalfEstimate(double[] x, double[] y) {
+        //estimates the time to reach 0.5 of the signal, 0.5 to 0.25 of the signal, and 0.25 to 0.125 of the signal
+        //these are averaged to try to account for multiple exponential components
+        //a single exponential decay should produce a similar t1/2 for all three
+        //a multiple exponential decay should produce longer t1/2s for the slower components
+        //not perfect but should be a better approximation
+        //interpolates between points to find the x that equals 0.5, 0.25, or 0.125 of y starting
         double [] tOneHalfArray = new double [3];
         double [] tOneHalfToReturn = new double [2];       
-        double theOffset = getTheOffset(x, y);
-        tOneHalfToReturn[0] = theOffset;
-        double previousIntensity = y[0] - theOffset;
+        tOneHalfToReturn[0] = y[y.length-1];
+        double previousIntensity = y[0];
         for (int t = 0; t < y.length; t++) {
-            if (t>0 && (y[t] - theOffset) <= ((y[0] - theOffset) * 0.5) && previousIntensity >= ((y[0] - theOffset) * 0.5)) {
+            if (t>0 && y[t] <= (y[0] * 0.5) && previousIntensity >= (y[0] * 0.5)) {
                 //interpolate to find t1/2
-                //double y0 = Math.log(previousIntensity);
-                //double y1 = Math.log(((y[0] - theOffset) * 0.5));
-                //double y2 = Math.log((y[t] - theOffset));
-                
+                 
                 double y0 = previousIntensity;
-                double y1 = (y[0] - theOffset) * 0.5;
-                double y2 = y[t] - theOffset;
+                double y1 = y[0] * 0.5;
+                double y2 = y[t];
                 
                 double x0 = x[t-1];
                 double x2 = x[t];
                 double x1 = x0 + (((x2 - x0) * (y1 - y0)) / (y2 - y0));
                 tOneHalfArray[0] = x1;
             }
-            if (t>0 && (y[t] - theOffset) <= ((y[0] - theOffset) * 0.25) && previousIntensity >= ((y[0] - theOffset) * 0.25)) {
+            if (t>0 && y[t] <= (y[0] * 0.25) && previousIntensity >= (y[0] * 0.25)) {
                 //interpolate to find t1/2
-                //double y0 = Math.log(previousIntensity);
-                //double y1 = Math.log(((y[0] - theOffset) * 0.5));
-                //double y2 = Math.log((y[t] - theOffset));
-                
+                  
                 double y0 = previousIntensity;
-                double y1 = (y[0] - theOffset) * 0.25;
-                double y2 = y[t] - theOffset;
+                double y1 = y[0] * 0.25;
+                double y2 = y[t];
                 
                 double x0 = x[t-1];
                 double x2 = x[t];
@@ -4210,15 +4379,12 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 
                 tOneHalfArray[1] = x1;
             }
-            if (t>0 && (y[t] - theOffset) <= ((y[0] - theOffset) * 0.125) && previousIntensity >= ((y[0] - theOffset) * 0.125)) {
+            if (t>0 && y[t] <= (y[0] * 0.125) && previousIntensity >= (y[0] * 0.125)) {
                 //interpolate to find t1/2
-                //double y0 = Math.log(previousIntensity);
-                //double y1 = Math.log(((y[0] - theOffset) * 0.5));
-                //double y2 = Math.log((y[t] - theOffset));
-                
+                  
                 double y0 = previousIntensity;
-                double y1 = (y[0] - theOffset) * 0.125;
-                double y2 = y[t] - theOffset;
+                double y1 = y[0] * 0.125;
+                double y2 = y[t];
                 
                 double x0 = x[t-1];
                 double x2 = x[t];
@@ -4226,7 +4392,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 
                 tOneHalfArray[2] = x1;
             }
-            previousIntensity = y[t] - theOffset;
+            previousIntensity = y[t];
         }
         tOneHalfToReturn[1]= (tOneHalfArray[0]+(tOneHalfArray[1]-tOneHalfArray[0])+(tOneHalfArray[2]-tOneHalfArray[1]))/3;
         return tOneHalfToReturn;
@@ -4237,7 +4403,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
         double [] G = new double [3];
         pixelData = subtractArrayFromArray(pixelData,bkGrdData);
-        
+        //background subtraction before performing the phasor calculations
         double [] g0 = calculateGm(timeData, pixelData, bkGrdData, omega);
         double [] g1 = calculateGs(timeData, pixelData, bkGrdData, omega);
         
@@ -4248,6 +4414,11 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         return G;
     }
     
+    //The methods for the phasor calculation below, calculateGm and calculateGs,
+    //are borrowed heavily from Matlab code included in
+    //Dave Jameson's paper Anal. Biochem (2011) 410:62-69
+    //with Gm representing the modulation data
+    //and Gs representing the phase data
     public double[] calculateGm(double[] timeData, double[] pixelData, double[] bkGrdData, double omega) {        
         double delta_t = (timeData[timeData.length - 1] - timeData[0])/timeData.length;                
         double [] GmArray = new double [2];
@@ -4313,6 +4484,11 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 //*****************Phasor Plotting, etc. ***********************************    
     
 public static double[][] getCalibratedPixelsFromPlotWindow(Plot thePlot) {
+    //this gets the points within the ROI draw on a phasor plot
+    //it allows selection of subsets of data or a way to determine
+    //mean values for phase and modulation of data sets
+    //the first version required rectanglular ROIs since they are easy
+    //it was updated to use any ROI later
         ImagePlus plotImg = thePlot.getImagePlus();
         Roi roi = plotImg.getRoi();
         Point[] pts = roi.getContainedPoints();
@@ -4344,6 +4520,7 @@ public static double[][] getCalibratedPixelsFromPlotWindow(Plot thePlot) {
     }*/
     
     public static Plot plotPhasorPlot(double[][][] gmData, double[][][] gsData, int width, int height, int cycleNumber) {
+        //makes a phasor plot for each photoswitching cycle
         double[] GM = new double[width * height];
         double[] GS = new double[width * height];
         ImageStack plotStack = new ImageStack();
@@ -4370,7 +4547,7 @@ public static double[][] getCalibratedPixelsFromPlotWindow(Plot thePlot) {
         ImagePlus PlotStack = new ImagePlus("Phasor Plot", plotStack);
         thePhasorPlot.setImagePlus(PlotStack);
        
-        //Add the semicircle
+        //Add the semicircle overlay
         double[] GmSemicircle = new double[1001];
         double[] GsSemicircle = new double[1001];
         double fakeLifetime = 0.1;
@@ -4401,6 +4578,8 @@ public static double[][] getCalibratedPixelsFromPlotWindow(Plot thePlot) {
     
     
     public double[][][] filterDataFromPhasor(double[][]theBounds) {
+        //usually used in conjunction with getCalibratedPixelsFromPlotWindow
+        //to make images with only data subsets from the phasor plot
         double[][][] returnArray =new double[imageW][imageH][numCycles];
         for (int cyc = 0; cyc < numCycles; cyc++) {
             for (int y = 0; y < imageH; y++) {
@@ -4418,6 +4597,9 @@ public static double[][] getCalibratedPixelsFromPlotWindow(Plot thePlot) {
     }
 
     public boolean containsMatch(double value, double[] theArray) {
+        //checks for a match within 0.01
+        //sometimes the data are 9 or 10 decimal places
+        //nothing generally matches, so we check within 0.01 
         for (int i = 0; i < theArray.length; i++) {
             if (Math.abs(value-theArray[i])<=0.01) 
                 return true;
@@ -4437,27 +4619,12 @@ public static double[][] getCalibratedPixelsFromPlotWindow(Plot thePlot) {
     }
     
         
-/*public double[][][] filterDataFromPhasor(double[]theBounds) {
-        double[][][] returnArray =new double[imageW][imageH][numCycles];
-        for (int cyc = 0; cyc < numCycles; cyc++) {
-            for (int y = 0; y < imageH; y++) {
-                for (int x = 0; x < imageW; x++) {
-                    if (GmData[x][y][cyc] >= theBounds[0] && GmData[x][y][cyc] <= (theBounds[0] + theBounds[2]) && GsData[x][y][cyc] <= theBounds[1] && GsData[x][y][cyc] >= (theBounds[1] - theBounds[3])) {
-                        returnArray[x][y][cyc] = AZeroData[x][y][cyc];
-                    } else {
-                        returnArray[x][y][cyc] = Float.NaN;
-                    }
-                }
-            }
-        }
-        return returnArray;
-    } 
-
-*/
 
     
 
 public double[] getFractionalContributions(double[]arrayOfMeanGRef, double[]arrayOfMeanSRef, double theG, double theS){
+    //returns the contributions from the possible photoswitchable probes in the sample (up to 5 total)
+    //see the word document with the reasoning behind the trigonemetric approach here
     double[] returnArray =new double[5];
     double[] deltaArray =new double[5];
     for(int k=0;k<deltaArray.length;k++){
@@ -4478,6 +4645,8 @@ public double[] getFractionalContributions(double[]arrayOfMeanGRef, double[]arra
         //make lines from theG and theS point to intersect at right angles with each of these lines
         //determine the area of the right trangles formed by the lines between 
         //each mean GS, intersecting lines, and the lines between theG,theS and the meanGS
+        //the reciprocal of the line lengths is used in the area calculations
+        //thus, the greater the area, the greater the contribution
         for (int nl = 4; nl > 0; nl--) {            
             for (int i = nl; i > 0; i--) {                
                 double mAB = (arrayOfMeanSRef[nl] - arrayOfMeanSRef[i - 1]) / (arrayOfMeanGRef[nl] - arrayOfMeanGRef[i - 1]);
@@ -4633,7 +4802,8 @@ public double[] getFractionalContributions(double[]arrayOfMeanGRef, double[]arra
 
 
 public void unMixPixelValuesAndCreateImages(double[]arrayOfMeanGRef, double[]arrayOfMeanSRef) {
-             
+//unmixes the signals from the first image of the photoswitching cycle using the 
+//fractional contributions determined from the phasor plots            
  long startTime = System.currentTimeMillis();
 //use ROI to define exclusively one channel or another
     arrayChA =new double[imageW][imageH][numCycles];
@@ -4708,28 +4878,14 @@ public void unMixPixelValuesAndCreateImages(double[]arrayOfMeanGRef, double[]arr
                                 
                                 double theLifetime = GsData[x][y][cycleNum]/(Omega * GmData[x][y][cycleNum]);
                                 
-                                double totalTime = timeData[1]-timeData[0];//2*Math.PI*harmonic/Omega;//we use 1/total cycle time as the frequency
+                                double totalTime = timeData[1]-timeData[0];//exposure time
                                 
-                                //arrayChA[x][y][cycleNum] = (fracContribArray[0] * pixelSumData[x][y][cycleNum])/(ChALifetime*Math.exp(totalTime/ChALifetime));
-                                //arrayChB[x][y][cycleNum] = (fracContribArray[1] * pixelSumData[x][y][cycleNum])/(ChBLifetime*Math.exp(totalTime/ChBLifetime));
-                                //arrayChC[x][y][cycleNum] = (fracContribArray[2] * pixelSumData[x][y][cycleNum])/(ChCLifetime*Math.exp(totalTime/ChCLifetime));
-                                //arrayChD[x][y][cycleNum] = (fracContribArray[3] * pixelSumData[x][y][cycleNum])/(ChDLifetime*Math.exp(totalTime/ChDLifetime));
-                                //arrayChE[x][y][cycleNum] = (fracContribArray[4] * pixelSumData[x][y][cycleNum])/(ChELifetime*Math.exp(totalTime/ChELifetime));
-                                
-                               /* double thePartial = Math.exp(totalTime/theLifetime);
-                                arrayChA[x][y][cycleNum] = (fracContribArray[0] * pixelSumData[x][y][cycleNum])/thePartial;
-                                arrayChB[x][y][cycleNum] = (fracContribArray[1] * pixelSumData[x][y][cycleNum])/thePartial;
-                                arrayChC[x][y][cycleNum] = (fracContribArray[2] * pixelSumData[x][y][cycleNum])/thePartial;
-                                arrayChD[x][y][cycleNum] = (fracContribArray[3] * pixelSumData[x][y][cycleNum])/thePartial;
-                                arrayChE[x][y][cycleNum] = (fracContribArray[4] * pixelSumData[x][y][cycleNum])/thePartial;
-                                */
                                 arrayChA[x][y][cycleNum] = (fracContribArray[0] * pixelSumData[x][y][cycleNum])/(ChALifetime*Math.exp(totalTime/theLifetime));
                                 arrayChB[x][y][cycleNum] = (fracContribArray[1] * pixelSumData[x][y][cycleNum])/(ChBLifetime*Math.exp(totalTime/theLifetime));
                                 arrayChC[x][y][cycleNum] = (fracContribArray[2] * pixelSumData[x][y][cycleNum])/(ChCLifetime*Math.exp(totalTime/theLifetime));
                                 arrayChD[x][y][cycleNum] = (fracContribArray[3] * pixelSumData[x][y][cycleNum])/(ChDLifetime*Math.exp(totalTime/theLifetime));
                                 arrayChE[x][y][cycleNum] = (fracContribArray[4] * pixelSumData[x][y][cycleNum])/(ChELifetime*Math.exp(totalTime/theLifetime));
-                                
-                                
+                                                                
                                 //IJ.log("ChALifetime ="+ChALifetime+"   ChBLifetime ="+ChBLifetime+"   pixelSumData[x][y][cycleNum]="+pixelSumData[x][y][cycleNum]+"   fracContribArray[0]="+fracContribArray[0]+"   fracContribArray[1]="+fracContribArray[1]+"   arrayChA[x][y][cycleNum]="+arrayChA[x][y][cycleNum]+"   arrayChB[x][y][cycleNum]="+arrayChB[x][y][cycleNum]);
                                
                             }
@@ -4758,7 +4914,8 @@ public void unMixPixelValuesAndCreateImages(double[]arrayOfMeanGRef, double[]arr
     } 
 
 public void unMixPixelValuesAndCreateImagesUsingFit() {
-             
+ //if the fractional contributions are calculated by fits using psFRET_Fit_Azero_Exponential()
+ //this will transfer those to the channel arrays and used to create unmixed images
  long startTime = System.currentTimeMillis();
 //use ROI to define exclusively one channel or another
     arrayChA =new double[imageW][imageH][numCycles];
@@ -4816,6 +4973,7 @@ public void unMixPixelValuesAndCreateImagesUsingFit() {
     } 
 
     public ImagePlus createUnmixedImage(String channel, double[][][] theArray) {
+        //plots the unmixed images
         ImagePlus imp = IJ.createImage(channel, "32-bit", imageW, imageH, numCycles);
 
         for (int cyc = 0; cyc < numCycles; cyc++) {
@@ -4840,6 +4998,9 @@ public void unMixPixelValuesAndCreateImagesUsingFit() {
     
     
     public double [] getMeanFromFilteredData(double[][]theBounds) {
+        //calculates the mean phase and modulation of a distribution of points
+        //on a phasor plot
+        //usually used to determine reference data points for unmixing
         double[]returnArray = new double[2];
         double sumG = 0;
         double sumS = 0;
@@ -4859,69 +5020,14 @@ public void unMixPixelValuesAndCreateImagesUsingFit() {
         returnArray[1]=Math.round(sumS/counter*1000.0)/1000.0;
         return returnArray;
     }
-    
-    
-private double[] getFractionalContributionsUsingFit(double[]arrayOfMeanGRef, double[]arrayOfMeanSRef, double theG, double theS) {
-        double [] theX = new double [1];
-        double [] theY = new double [1];
-        theX[0]=1;
-        theY[0]=theG;
-        double[] params = new double[3];
-        for(int i=0;i<params.length;i++){
-            params[i]=Math.sqrt(1/params.length);
-        }
-        CurveFitter cf = new CurveFitter(theX, theY);
-        cf.doCustomFit(new UserFunction() {
-            @Override
-            public double userFunction(double[] par, double theX) {
-
-                return theX*theS*(par[0]*par[0]*arrayOfMeanGRef[0] + par[1]*par[1]*arrayOfMeanGRef[1] + par[2]*par[2]*arrayOfMeanGRef[2])/(par[0]*par[0]*arrayOfMeanSRef[0] + par[1]*par[1]*arrayOfMeanSRef[1] + par[2]*par[2]*arrayOfMeanSRef[2]);
-
-            }
-        }, params.length, "", params, null, false);
-        double[] paramToReturn = cf.getParams();
-        double[] returnArray = new double[params.length];
         
-        
-        returnArray[0] = paramToReturn[0]*paramToReturn[0];
-        returnArray[1] = paramToReturn[1]*paramToReturn[1];
-        returnArray[2] = paramToReturn[2]*paramToReturn[2];
-
-        return returnArray; 
-    }
-
-
-
-
-    
-    
-    
-    
-    
-    
     
 //*******************Utilities*******************************
-    
-    public double[] getArrayStatistics(double[] theArray) {
-
-        double min = theArray[0];
-        double max = theArray[0];
-        double sum = 0;
-        for (int i = 0; i < theArray.length; i++) {
-            if (theArray[i] < min) {
-                min = theArray[i];
-            }
-            if (theArray[i] > max) {
-                max = theArray[i];
-            }
-            sum = sum + theArray[i];
-        }
-        double mean = sum / theArray.length;
-        double[] returnArray = {min, max, sum, mean};
-        return returnArray;
-    }
 
     private double[] getTimingPerPlane(String arg, int tPoints, int currZ, int currCh) throws Exception {
+        //this uses Bioformats to get the timing of the images
+        //from the start of the experiment
+        //if the plane delta T is not found, user is prompted for a time interval input
         String fExt = arg.substring(arg.indexOf("."), arg.length());
         if (fExt.contains(" ") && fExt.indexOf(" ") < arg.length()) {
             fExt = fExt.substring(0, fExt.indexOf(" "));
@@ -4989,7 +5095,26 @@ private double[] getFractionalContributionsUsingFit(double[]arrayOfMeanGRef, dou
         }
         return timeStampsToReturn;
     }
+    
+    public double[] getArrayStatistics(double[] theArray) {
 
+        double min = theArray[0];
+        double max = theArray[0];
+        double sum = 0;
+        for (int i = 0; i < theArray.length; i++) {
+            if (theArray[i] < min) {
+                min = theArray[i];
+            }
+            if (theArray[i] > max) {
+                max = theArray[i];
+            }
+            sum = sum + theArray[i];
+        }
+        double mean = sum / theArray.length;
+        double[] returnArray = {min, max, sum, mean};
+        return returnArray;
+    }
+      
     private static double[] subtractArrayFromArray(double[] array1, double[] array2) {
         if (array1.length != array2.length) {
             IJ.showMessage("Phasor Plotter", "The time and data arrays are not the same length");
@@ -5031,6 +5156,14 @@ private double[] getFractionalContributionsUsingFit(double[]arrayOfMeanGRef, dou
         double[] arrayToReturn = new double[array1.length];
         for (int i = 0; i < array1.length; i++) {
             arrayToReturn[i] = array1[i] - theValue;
+        }
+        return arrayToReturn;
+    }
+    
+    private static double[] addValueToArray(double[] array1, double theValue) {
+        double[] arrayToReturn = new double[array1.length];
+        for (int i = 0; i < array1.length; i++) {
+            arrayToReturn[i] = array1[i] + theValue;
         }
         return arrayToReturn;
     }
@@ -5084,7 +5217,6 @@ private double[] getFractionalContributionsUsingFit(double[]arrayOfMeanGRef, dou
             arrayToReturn[i] = array1[i] + array2[i];
         }
         return arrayToReturn;
-
     }
     
     int getIndexOfMaxValue(int [] indexArray, double [] valueArray){
@@ -5203,6 +5335,8 @@ private double[] getFractionalContributionsUsingFit(double[]arrayOfMeanGRef, dou
 
 
     private void writeReferenceDataToFile(){
+        //writes the reference data from phasor plots
+        //can be reloaded into the plugin for unmixing
        
         try {
             //ImageWindow iwin = img.getWindow();
@@ -5348,7 +5482,7 @@ private double[] getFractionalContributionsUsingFit(double[]arrayOfMeanGRef, dou
     
     
     private void readReferenceDataFromFile(){
-       
+       //reads the reference data from the text file
         try {
             //ImageWindow iwin = img.getWindow();
             //ij.WindowManager.setCurrentWindow(iwin);
@@ -5601,10 +5735,11 @@ private double[] getFractionalContributionsUsingFit(double[]arrayOfMeanGRef, dou
     
     
 //*********************Image plotting, etc. ******************************************    
-        
+//this section plots the various images resulting from fits or unmixing
+    
     public ImagePlus createImage(String titleOfImage, double[][][]theDataToPlot) {
+        //this is just a general image plotting method
         ImagePlus imp = IJ.createImage(titleOfImage, "32-bit", imageW, imageH, numCycles);
-
         for (int cyc = 0; cyc < numCycles; cyc++) {
             imp.setSlice(cyc + 1);
             ImageProcessor ip = imp.getProcessor();
@@ -5625,118 +5760,9 @@ private double[] getFractionalContributionsUsingFit(double[]arrayOfMeanGRef, dou
     }
     
 
-    public ImagePlus createK1Image() {
-        ImagePlus imp = IJ.createImage("K1Image", "32-bit", imageW, imageH, numCycles);
-
-        for (int cyc = 0; cyc < numCycles; cyc++) {
-            imp.setSlice(cyc + 1);
-            ImageProcessor ip = imp.getProcessor();
-            FloatProcessor fip = (FloatProcessor) ip.convertToFloat();
-            for (int y = 0; y < imageH; y++) {
-                for (int x = 0; x < imageW; x++) {
-                    if (Double.isNaN(k1DataG[x][y][cyc])) {
-                        fip.setf(x, y, Float.NaN);
-                    } else {
-                        fip.setf(x, y, (float) k1DataG[x][y][cyc]);
-                    }
-                }
-            }
-            IJ.resetMinAndMax(imp);
-        }
-        imp.show();
-        return imp;
-    }
-    public ImagePlus createA2Image() {
-        ImagePlus imp = IJ.createImage("A2Image", "32-bit", imageW, imageH, numCycles);
-
-        for (int cyc = 0; cyc < numCycles; cyc++) {
-            imp.setSlice(cyc + 1);
-            ImageProcessor ip = imp.getProcessor();
-            FloatProcessor fip = (FloatProcessor) ip.convertToFloat();
-            for (int y = 0; y < imageH; y++) {
-                for (int x = 0; x < imageW; x++) {
-                    if (Double.isNaN(a2DataG[x][y][cyc])) {
-                        fip.setf(x, y, Float.NaN);
-                    } else {
-                        fip.setf(x, y, (float) a2DataG[x][y][cyc]);
-                    }
-                }
-            }
-            IJ.resetMinAndMax(imp);
-        }
-        imp.show();
-        return imp;
-    }
-
-    public ImagePlus createK2Image() {
-        ImagePlus imp = IJ.createImage("K2Image", "32-bit", imageW, imageH, numCycles);
-
-        for (int cyc = 0; cyc < numCycles; cyc++) {
-            imp.setSlice(cyc + 1);
-            ImageProcessor ip = imp.getProcessor();
-            FloatProcessor fip = (FloatProcessor) ip.convertToFloat();
-            for (int y = 0; y < imageH; y++) {
-                for (int x = 0; x < imageW; x++) {
-                    if (Double.isNaN(k2DataG[x][y][cyc])) {
-                        fip.setf(x, y, Float.NaN);
-                    } else {
-                        fip.setf(x, y, (float) k2DataG[x][y][cyc]);
-                    }
-                }
-            }
-            IJ.resetMinAndMax(imp);
-        }
-        imp.show();
-        return imp;
-    }
-
-    public ImagePlus createA3Image() {
-        ImagePlus imp = IJ.createImage("A1Image", "32-bit", imageW, imageH, numCycles);
-
-        for (int cyc = 0; cyc < numCycles; cyc++) {
-            imp.setSlice(cyc + 1);
-            ImageProcessor ip = imp.getProcessor();
-            FloatProcessor fip = (FloatProcessor) ip.convertToFloat();
-            for (int y = 0; y < imageH; y++) {
-                for (int x = 0; x < imageW; x++) {
-                    if (Double.isNaN(a3DataG[x][y][cyc])) {
-                        fip.setf(x, y, Float.NaN);
-                    } else {
-                        fip.setf(x, y, (float) a3DataG[x][y][cyc]);
-                    }
-                }
-            }
-            IJ.resetMinAndMax(imp);
-        }
-        imp.show();
-        return imp;
-    }
-
-    public ImagePlus createK3Image() {
-        ImagePlus imp = IJ.createImage("K3Image", "32-bit", imageW, imageH, numCycles);
-
-        for (int cyc = 0; cyc < numCycles; cyc++) {
-            imp.setSlice(cyc + 1);
-            ImageProcessor ip = imp.getProcessor();
-            FloatProcessor fip = (FloatProcessor) ip.convertToFloat();
-            for (int y = 0; y < imageH; y++) {
-                for (int x = 0; x < imageW; x++) {
-                    if (Double.isNaN(k3DataG[x][y][cyc])) {
-                        fip.setf(x, y, Float.NaN);
-                    } else {
-                        fip.setf(x, y, (float) k3DataG[x][y][cyc]);
-                    }
-                }
-            }
-            IJ.resetMinAndMax(imp);
-        }
-        imp.show();
-        return imp;
-    }
-
     public ImagePlus createWeightedRateConstantsImage() {
+        //plots a weighted rate constant image
         ImagePlus imp = IJ.createImage("WeightedRateConstantsImage", "32-bit", imageW, imageH, numCycles);
-
         for (int cyc = 0; cyc < numCycles; cyc++) {
             imp.setSlice(cyc + 1);
             ImageProcessor ip = imp.getProcessor();
@@ -5760,55 +5786,9 @@ private double[] getFractionalContributionsUsingFit(double[]arrayOfMeanGRef, dou
         imp.show();
         return imp;
     }
-    
-    public ImagePlus createOffsetImage() {
-        ImagePlus imp = IJ.createImage("OffsetImage", "32-bit", imageW, imageH, numCycles);
-
-        for (int cyc = 0; cyc < numCycles; cyc++) {
-            imp.setSlice(cyc + 1);
-            ImageProcessor ip = imp.getProcessor();
-            FloatProcessor fip = (FloatProcessor) ip.convertToFloat();
-            for (int y = 0; y < imageH; y++) {
-                for (int x = 0; x < imageW; x++) {
-                    if (Double.isNaN(offsetDataG[x][y][cyc])) {
-                        fip.setf(x, y, Float.NaN);
-                    } else {
-                        fip.setf(x, y, (float) offsetDataG[x][y][cyc]);
-                    }
-                }
-            }
-            IJ.resetMinAndMax(imp);
-        }
-        imp.show();
-        return imp;
-    }
-
-
-    public ImagePlus createChi2Image() {
-        ImagePlus imp = IJ.createImage("Chi2Image", "32-bit", imageW, imageH, numCycles);
-
-        for (int cyc = 0; cyc < numCycles; cyc++) {
-            imp.setSlice(cyc + 1);
-            ImageProcessor ip = imp.getProcessor();
-            FloatProcessor fip = (FloatProcessor) ip.convertToFloat();
-            for (int y = 0; y < imageH; y++) {
-                for (int x = 0; x < imageW; x++) {
-                    if (Double.isNaN(Chi2G[x][y][cyc])) {
-                        fip.setf(x, y, Float.NaN);
-                    } else {
-                        fip.setf(x, y, (float) Chi2G[x][y][cyc]);
-                    }
-                }
-            }
-            IJ.resetMinAndMax(imp);
-        }
-        imp.show();
-        return imp;
-    }
-    
-    
+        
     private void saveUnmixedImages() {
-             
+    //saves the images unmixed by the phasor or the fractional component fitting
         String title = img.getTitle();
         IJ.selectWindow(title);
         String dir0 = IJ.getDirectory("image");
@@ -5842,5 +5822,4 @@ private double[] getFractionalContributionsUsingFit(double[]arrayOfMeanGRef, dou
             }
     }
     
-
 }
