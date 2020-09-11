@@ -20,6 +20,7 @@ import ij.util.Tools;
 import java.awt.event.*;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.io.*;
 
 import loci.formats.FormatException;
@@ -68,6 +69,22 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     double[][][] k4DataG;
     double[][][] a5DataG;
     double[][][] k5DataG;
+    
+    //temp values OPT
+    boolean usePhasortoInitialize; 
+    boolean isPhasorFitDone;
+    double[][][] Chi2G_t;
+    double[][][] offsetDataG_t;
+    double[][][] a1DataG_t;
+    double[][][] k1DataG_t;
+    double[][][] a2DataG_t;
+    double[][][] k2DataG_t;
+    double[][][] a3DataG_t;
+    double[][][] k3DataG_t;
+    double[][][] a4DataG_t;
+    double[][][] k4DataG_t;
+    double[][][] a5DataG_t;
+    double[][][] k5DataG_t;
     String id;
     ImagePlus img;
     ImageCanvas canvas;
@@ -211,6 +228,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         UseLogScale = new javax.swing.JCheckBox();
         selectFromPhasorPlot = new javax.swing.JButton();
         manualTimeCB = new javax.swing.JCheckBox();
+        HybridFitCB=new javax.swing.JCheckBox();
         fitAzeroFixedExponential = new javax.swing.JButton();
         Phasor = new javax.swing.JPanel();
         HarmonicToPlotLabel = new javax.swing.JLabel();
@@ -373,6 +391,23 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         manualTimeCB.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 manualTimeCBActionPerformed(evt);
+                
+            }
+        });
+        
+        //hybrid fit
+        HybridFitCB.setText("Use hybrid fitting");
+        HybridFitCB.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                //manualTimeCBStateChanged(evt);
+                hybridFittateChanged(evt);
+            }
+        });
+        HybridFitCB.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+               // manualTimeCBActionPerformed(evt);
+                hybridStateCBActionPerformed(evt);
+                
             }
         });
 
@@ -393,6 +428,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 .addContainerGap(105, Short.MAX_VALUE)
                 .addGroup(ControlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(manualTimeCB)
+                    .addComponent(HybridFitCB)
                     .addComponent(selectFromPhasorPlot, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(MakeSavePhasorParameterImage, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(fitExponential, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -405,7 +441,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 .addComponent(fitAzeroFixedExponential, javax.swing.GroupLayout.PREFERRED_SIZE, 318, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        ControlLayout.setVerticalGroup(
+		ControlLayout.setVerticalGroup(
             ControlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(ControlLayout.createSequentialGroup()
                 .addContainerGap()
@@ -414,6 +450,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 .addComponent(fitAzeroFixedExponential, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(13, 13, 13)
                 .addComponent(manualTimeCB)
+                .addGap(13, 13, 13)
+                .addComponent(HybridFitCB)
                 .addGap(41, 41, 41)
                 .addComponent(makeRateConstantImage)
                 .addGap(44, 44, 44)
@@ -1820,6 +1858,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
     private void PhasorStackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_PhasorStackActionPerformed
         boolean imageOpenAlready = false;
+        IJ.log("doing phasor analysis");
         String[] imageTitles = WindowManager.getImageTitles();
         for (String imageTitle : imageTitles) {
             if (imageTitle.contains("RateConstantsImage")) {
@@ -2725,6 +2764,25 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         }
 
     }//GEN-LAST:event_manualTimeCBActionPerformed
+    
+    private void hybridFittateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_manualTimeCBStateChanged
+        if (HybridFitCB.isSelected()) {
+        	usePhasortoInitialize = true;
+        }
+        if (!HybridFitCB.isSelected()) {
+        	usePhasortoInitialize = false;
+        }
+    }//GEN-LAST:event_manualTimeCBStateChanged
+
+    private void hybridStateCBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manualTimeCBActionPerformed
+        if (HybridFitCB.isSelected()) {
+        	usePhasortoInitialize = true;
+        }
+        if (!HybridFitCB.isSelected()) {
+        	usePhasortoInitialize = false;
+        }
+
+    }//GEN-LAST:event_manualTimeCBActionPerformed
 
     private void saveUnmixedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveUnmixedActionPerformed
        saveUnmixedImages();
@@ -2791,6 +2849,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             return;
         }
 
+        IJ.log("in the fitting function");
         img = IJ.getImage();
         ImageWindow iwin = img.getWindow();
         iwin.addWindowListener(new WindowAdapter()
@@ -2817,8 +2876,11 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             }
             chWarnOff = wfc.getNextBoolean();
         }
+        IJ.log("outside try");
         try {
+        	IJ.log("before fit function called");
             psFRET_Fit_Azero_Exponential();
+            
         } catch (Exception ex) {
             Logger.getLogger(Photoswitching_Phasor_Plotter.class.getName()).log(Level.SEVERE, null, ex);
         }        
@@ -2855,6 +2917,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
+    	new ImageJ();
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -2965,6 +3028,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     private javax.swing.JCheckBox logPhasorTimes;
     private javax.swing.JButton makeRateConstantImage;
     private javax.swing.JCheckBox manualTimeCB;
+    private javax.swing.JCheckBox HybridFitCB;
     private javax.swing.JLabel maxIterationsLabel;
     private javax.swing.JFormattedTextField maxIterationsTF;
     private javax.swing.JCheckBox medianFilterCB;
@@ -3082,6 +3146,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             final double[][] timeDataArrayOfArrays = new double[threads.length][timeData.length];
             final double[][] pixelsArrayOfArrays = new double[threads.length][timeData.length];
             //two 2D arrays are initialized to handle the timedata and the pixel (fluorescence data) during the fitting
+            
+            IJ.log("this is thread size");
+            IJ.log(Integer.toString(threads.length));
             
             for (int ithread = 0; ithread < threads.length; ithread++) {
                 final int threadIndex = ithread;
@@ -3323,9 +3390,24 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         wmkImage = createWeightedRateConstantsImage();
     }
 
+    public void printSystemTime() {
+    	
+    	Calendar now = Calendar.getInstance();
+    	int year = now.get(Calendar.YEAR);
+    	int month = now.get(Calendar.MONTH) + 1; // Note: zero based!
+    	int day = now.get(Calendar.DAY_OF_MONTH);
+    	int hour = now.get(Calendar.HOUR_OF_DAY);
+    	int minute = now.get(Calendar.MINUTE);
+    	int second = now.get(Calendar.SECOND);
+    	int millis = now.get(Calendar.MILLISECOND);
+    	String output=String.format("%d-%02d-%02d %02d:%02d:%02d.%03d", year, month, day, hour, minute, second, millis);
+    	IJ.log(output);
+    	
+    }
     public void psFRET_Fit_Azero_Exponential() throws Exception {
         //this method is the same as above except that the rate constants are fixed and only the fractional components are fitted
         
+
         IJ.resetMinAndMax(img);
         //in case the image is opened without using the plugin BioFormats button
         String dir0 = IJ.getDirectory("image");
@@ -3367,9 +3449,26 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         a4DataG = new double[imageW][imageH][numCycles];
         a5DataG = new double[imageW][imageH][numCycles];
         
-
+        
+        //temp values for next cycle
+        //usePhasortoInitialize=true; 
+        
+        Chi2G_t = new double[imageW][imageH][numCycles];
+        offsetDataG_t = new double[imageW][imageH][numCycles];
+        a1DataG_t = new double[imageW][imageH][numCycles];
+        a2DataG_t = new double[imageW][imageH][numCycles];
+        a3DataG_t= new double[imageW][imageH][numCycles];
+        a4DataG_t = new double[imageW][imageH][numCycles];
+        a5DataG_t = new double[imageW][imageH][numCycles];
+        
+   
         for (int cycle = 0; cycle < numCycles; cycle++) {
+            IJ.log("for each cycle");
+            printSystemTime();
+            
             final long startTime = System.currentTimeMillis();
+            
+            IJ.log(Long.toString(startTime));
             double[] timeData2 = new double[imagesPerCycle];
             for (int k = 0; k < imagesPerCycle; k++) {
                 timeData2[k] = (timeData3[k + (cycle * imagesPerCycle)] - timeData3[cycle * imagesPerCycle]);
@@ -3401,70 +3500,118 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                 int progress = (int) Math.round(((double) (y - startY) / (endY - startY)) * 100);
                                 statusMessageArea.setText("Fitting pixels progress: " + progress + " %  of cycle " + (cycleNum + 1) + " of " + numCycles + " total cycles");                                
                                 statusMessageArea.update(statusMessageArea.getGraphics());
-                         }
+                            }
                             for (int x = 0; x < width; x++) {
-                                for (int z = 0; z < timeData.length; z++) {
-                                    timeDataArrayOfArrays[threadIndex][z] = timeData[z];
-                                    if (img.isHyperStack()) {
-                                        int z2 = img.getStackIndex(img.getC(), img.getZ(), (cycleNum * imagesPerCycle) + z + 1) - 1;
-                                        pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, z2);
-                                    } else {
-                                        pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, (cycleNum * imagesPerCycle) + z);
-                                    }
-                                }
-                                pixelsArrayOfArrays[threadIndex] = subtractValueFromArray(pixelsArrayOfArrays[threadIndex], cameraOffset*binFactor*binFactor);
-                                double firstframeint = pixelsArrayOfArrays[threadIndex][0];
-                                double lastframeint = pixelsArrayOfArrays[threadIndex][pixelsArrayOfArrays[threadIndex].length - 1];
-                                double tau = findTauEstimate(timeDataArrayOfArrays[threadIndex], pixelsArrayOfArrays[threadIndex], firstframeint, lastframeint);
-                                double guess_o = 0;
-                                double guess_a1 = 0;
-                                double guess_a2 = 0;                                
-                                double guess_a3 = 0;
-                                double guess_a4 = 0;                                
-                                double guess_a5 = 0;
-                                
+                            	for (int z = 0; z < timeData.length; z++) {
+                            		timeDataArrayOfArrays[threadIndex][z] = timeData[z];
+                            		if (img.isHyperStack()) {
+                            			int z2 = img.getStackIndex(img.getC(), img.getZ(), (cycleNum * imagesPerCycle) + z + 1) - 1;
+                            			pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, z2);
+                            		} else {
+                            			pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, (cycleNum * imagesPerCycle) + z);
+                            		}
+                            	}
+                            	pixelsArrayOfArrays[threadIndex] = subtractValueFromArray(pixelsArrayOfArrays[threadIndex], cameraOffset*binFactor*binFactor);
+                            	double firstframeint = pixelsArrayOfArrays[threadIndex][0];
+                            	double lastframeint = pixelsArrayOfArrays[threadIndex][pixelsArrayOfArrays[threadIndex].length - 1];
+                            	//double tau = findTauEstimate(timeDataArrayOfArrays[threadIndex], pixelsArrayOfArrays[threadIndex], firstframeint, lastframeint); //OPT not sure if needed commenting to test
+                            	
+                            	
+                            	//initialization for this round of fitting
+                            	double[] fitparam=initAzeorExponentialFit(x,y,cycleNum);
+//                            	
+//                            	double guess_o = 0;
+//                            	double guess_a1 = 0;
+//                            	double guess_a2 = 0;                                
+//                            	double guess_a3 = 0;
+//                            	double guess_a4 = 0;                                
+//                            	double guess_a5 = 0;
+//                            	
+//
+//                            	
+//                            	
+//                        		if(usePhasortoInitialize&&isPhasorFitDone) {
+//                        			//now testing for first cycle only
+//                        			//initialize using the data from phasor
+//                        			//later expand and compare with subsequent cycles
+//                            		guess_o = 	0;
+//                            		guess_a1 = 	arrayChA[x][y][0];
+//                            		guess_a2 = 	arrayChB[x][y][0];                                
+//                            		guess_a3 = 	arrayChC[x][y][0];
+//                            		guess_a4 = 	arrayChD[x][y][0];                                
+//                            		guess_a5 = 	arrayChE[x][y][0];
+//                        		}
+//                        	
+//                            	
+//                            	if(cycleNum>0)
+//                            	{
+//
+//                            		//copying from the previous cycle for initializing value for the subsequent cycle
+//                            		guess_o = 	offsetDataG_t[x][y][cycleNum-1];
+//                            		guess_a1 = 	a1DataG_t[x][y][cycleNum-1] ;
+//                            		guess_a2 = 	a2DataG_t[x][y][cycleNum-1];                                
+//                            		guess_a3 = 	a3DataG_t[x][y][cycleNum-1];
+//                            		guess_a4 = 	a4DataG_t[x][y][cycleNum-1];                                
+//                            		guess_a5 = 	a5DataG_t[x][y][cycleNum-1];
+//
+//
+//                            	}
+//                            	
+//                            	double[] fitparam= {0,guess_o, guess_a1, guess_a2,guess_a3,guess_a4,guess_a5};
+                            	
+                            	
 
-                                double[] fitparam = {
-                                    0,
-                                    guess_o,
-                                    guess_a1,
-                                    guess_a2,
-                                    guess_a3,
-                                    guess_a4,
-                                    guess_a5};
 
-                                if (firstframeint - lastframeint < PixelThresholdCutOff) {
-                                    Chi2G[x][y][cycleNum] = Double.NaN;
-                                    offsetDataG[x][y][cycleNum] = Double.NaN;
-                                    a1DataG[x][y][cycleNum] = Double.NaN;
-                                    a2DataG[x][y][cycleNum] = Double.NaN;
-                                    a3DataG[x][y][cycleNum] = Double.NaN;
-                                    a4DataG[x][y][cycleNum] = Double.NaN;
-                                    a5DataG[x][y][cycleNum] = Double.NaN;
+                            	if (firstframeint - lastframeint < PixelThresholdCutOff) {
+                            		Chi2G[x][y][cycleNum] = Double.NaN;
+                            		offsetDataG[x][y][cycleNum] = Double.NaN;
+                            		a1DataG[x][y][cycleNum] = Double.NaN;
+                            		a2DataG[x][y][cycleNum] = Double.NaN;
+                            		a3DataG[x][y][cycleNum] = Double.NaN;
+                            		a4DataG[x][y][cycleNum] = Double.NaN;
+                            		a5DataG[x][y][cycleNum] = Double.NaN;
 
-                                } else {
+                            	} else {
 
-                                    double[] fittedParam = fitAzeroExponentialFunction(timeDataArrayOfArrays[threadIndex], pixelsArrayOfArrays[threadIndex], fitparam, maxiteration);
-                                    double Chi2 = fittedParam[0];
+                            		double[] fittedParam = fitAzeroExponentialFunction(timeDataArrayOfArrays[threadIndex], pixelsArrayOfArrays[threadIndex], fitparam, maxiteration);
+                            		double Chi2 = fittedParam[0];
 
-                                    if (Chi2 < Chi2CutOff) {
-                                        offsetDataG[x][y][cycleNum] = (float) fittedParam[1];
-                                        a1DataG[x][y][cycleNum] = (float) fittedParam[2];
-                                        a2DataG[x][y][cycleNum] = (float) fittedParam[3];
-                                        a3DataG[x][y][cycleNum] = (float) fittedParam[4];
-                                        a4DataG[x][y][cycleNum] = (float) fittedParam[5];
-                                        a5DataG[x][y][cycleNum] = (float) fittedParam[6];
+                            		if (Chi2 < Chi2CutOff) {
+                            			offsetDataG[x][y][cycleNum] = (float) fittedParam[1];
+                            			a1DataG[x][y][cycleNum] = (float) fittedParam[2];
+                            			a2DataG[x][y][cycleNum] = (float) fittedParam[3];
+                            			a3DataG[x][y][cycleNum] = (float) fittedParam[4];
+                            			a4DataG[x][y][cycleNum] = (float) fittedParam[5];
+                            			a5DataG[x][y][cycleNum] = (float) fittedParam[6];
+                            			
+                            			if(cycleNum<(numCycles-1)) {//OPT copy fitted param for initialization for next cycle 
+                            				offsetDataG_t[x][y][cycleNum] = (float) fittedParam[1];
+                                			a1DataG_t[x][y][cycleNum] = (float) fittedParam[2];
+                                			a2DataG_t[x][y][cycleNum] = (float) fittedParam[3];
+                                			a3DataG_t[x][y][cycleNum] = (float) fittedParam[4];
+                                			a4DataG_t[x][y][cycleNum] = (float) fittedParam[5];
+                                			a5DataG_t[x][y][cycleNum] = (float) fittedParam[6];
+                            			}
 
-                                    } else {
-                                        Chi2G[x][y][cycleNum] = Double.NaN;
-                                        offsetDataG[x][y][cycleNum] = Double.NaN;
-                                        a1DataG[x][y][cycleNum] = Double.NaN;
-                                        a2DataG[x][y][cycleNum] = Double.NaN;
-                                        a3DataG[x][y][cycleNum] = Double.NaN;
-                                        a4DataG[x][y][cycleNum] = Double.NaN;
-                                        a5DataG[x][y][cycleNum] = Double.NaN;
-                                    }
-                                }
+                            		} else {
+                            			Chi2G[x][y][cycleNum] = Double.NaN;
+                            			offsetDataG[x][y][cycleNum] = Double.NaN;
+                            			a1DataG[x][y][cycleNum] = Double.NaN;
+                            			a2DataG[x][y][cycleNum] = Double.NaN;
+                            			a3DataG[x][y][cycleNum] = Double.NaN;
+                            			a4DataG[x][y][cycleNum] = Double.NaN;
+                            			a5DataG[x][y][cycleNum] = Double.NaN;
+
+                            			if(cycleNum<(numCycles-1)) {
+                            				offsetDataG_t[x][y][cycleNum] = Double.NaN;;
+                            				a1DataG_t[x][y][cycleNum] = (float) Double.NaN;
+                            				a2DataG_t[x][y][cycleNum] = (float) Double.NaN;
+                            				a3DataG_t[x][y][cycleNum] = (float) Double.NaN;
+                            				a4DataG_t[x][y][cycleNum] = (float) Double.NaN;
+                            				a5DataG_t[x][y][cycleNum] = (float) Double.NaN;
+                            			}
+                            		}
+                            	}
                             }
                         }
                     }
@@ -3477,6 +3624,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             if (LogFitTime == true) {
                 IJ.log("Image " + id + " cycle " + cycle + " processing time = " + (timeToCompletion / 1000) + " sec");
             }
+            IJ.log("fitting function over psFRET_Fit_Azero_Exponential");
+            printSystemTime();
+           
         } //end of cycles 
 
     }
@@ -3626,8 +3776,62 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         }
         return returnArray;
     }
+    /*
+     x=time
+     y=pixel value
+     */
+    
+    private double[] initAzeorExponentialFit(int x, int y, int cycleNum) {
+    	
+    	
+    	double guess_o = 0;
+    	double guess_a1 = 0;
+    	double guess_a2 = 0;                                
+    	double guess_a3 = 0;
+    	double guess_a4 = 0;                                
+    	double guess_a5 = 0;
+    	
 
+    	
+    	
+		if(usePhasortoInitialize&&isPhasorFitDone) {
+			//now testing for first cycle only
+			//initialize using the data from phasor
+			//later expand and compare with subsequent cycles
+			IJ.log("came here");
+    		guess_o = 	0;
+    		guess_a1 = 	arrayChA[x][y][0];
+    		guess_a2 = 	arrayChB[x][y][0];                                
+    		guess_a3 = 	arrayChC[x][y][0];
+    		guess_a4 = 	arrayChD[x][y][0];                                
+    		guess_a5 = 	arrayChE[x][y][0];
+		}
+	
+    	
+    	if(cycleNum>0)
+    	{
+
+    		//copying from the previous cycle for initializing value for the subsequent cycle
+    		guess_o = 	offsetDataG_t[x][y][cycleNum-1];
+    		guess_a1 = 	a1DataG_t[x][y][cycleNum-1] ;
+    		guess_a2 = 	a2DataG_t[x][y][cycleNum-1];                                
+    		guess_a3 = 	a3DataG_t[x][y][cycleNum-1];
+    		guess_a4 = 	a4DataG_t[x][y][cycleNum-1];                                
+    		guess_a5 = 	a5DataG_t[x][y][cycleNum-1];
+
+
+    	}
+    	
+    	double[] fitData= {0,guess_o, guess_a1, guess_a2,guess_a3,guess_a4,guess_a5};
+    	return fitData; 
+    	
+    	
+    	
+    	
+    }
     private double[] fitAzeroExponentialFunction(double[] x, double[] y, double[] paramsPassed, int maxIter) {
+    	
+//    	IJ.log("inside the fit function start");
         //this is the method fitting only the fractional contributions
         //it assumes that rate constants have been measured previously and input into the plugin gui
         double[] params = new double[0];
@@ -3667,10 +3871,13 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             params[1] = Math.sqrt(params[1]);//converting to the square root and then including the squares in the equation forces these to be positive
         }
        
-        double[] paramVariations = multiplyArrayByValue(params, varParam);
+        //double[] paramVariations = multiplyArrayByValue(params, varParam); //OPT
+        // x, y length 300
         CurveFitter cf = new CurveFitter(x, y);
         cf.setOffsetMultiplySlopeParams(-1, -1, -1);
         cf.setMaxIterations(maxIter);      
+     //	should set the initial pa
+       // cf.setRestarts(4);
         cf.doCustomFit(new UserFunction() {
             @Override
             public double userFunction(double[] par, double x) {
@@ -3700,6 +3907,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         Arrays.fill(returnArray, 0);
         returnArray[0] = Chi2ToReturn;
         returnArray[1] = paramToReturn[0];
+        
+        //IJ.log("chi2 calculated "+Double.toString(Chi2ToReturn)+" param 0 = "+Double.toString(paramToReturn[0]));
         if (useChA) {
             returnArray[2] = paramToReturn[1] * paramToReturn[1];//these are the square roots; convert back to the fractional contributions
         }
@@ -4896,7 +5105,7 @@ public void unMixPixelValuesAndCreateImages(double[]arrayOfMeanGRef, double[]arr
         }
     startAndJoin(threads);
     }//cyc
-    
+    isPhasorFitDone=true;// for hybrid fitting this needs to be true; 
     long timeToCompletion = System.currentTimeMillis() - startTime;    
     statusMessageArea.setText("Unmixing time: " + timeToCompletion);                                
     statusMessageArea.update(statusMessageArea.getGraphics());
@@ -4975,7 +5184,7 @@ public void unMixPixelValuesAndCreateImagesUsingFit() {
     public ImagePlus createUnmixedImage(String channel, double[][][] theArray) {
         //plots the unmixed images
         ImagePlus imp = IJ.createImage(channel, "32-bit", imageW, imageH, numCycles);
-
+        
         for (int cyc = 0; cyc < numCycles; cyc++) {
             imp.setSlice(cyc + 1);
             ImageProcessor ip = imp.getProcessor();
@@ -4991,6 +5200,7 @@ public void unMixPixelValuesAndCreateImagesUsingFit() {
             }
             IJ.resetMinAndMax(imp);
         }
+        
         imp.show();
         return imp;
     }    
@@ -5306,6 +5516,9 @@ public void unMixPixelValuesAndCreateImagesUsingFit() {
      */
     private Thread[] newThreadArray() {
         int n_cpus = Runtime.getRuntime().availableProcessors();
+       
+        IJ.log("in thread array");
+        IJ.log(Integer.toString(n_cpus));
         return new Thread[n_cpus];
     }
 
