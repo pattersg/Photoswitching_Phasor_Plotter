@@ -134,10 +134,10 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     int maxiteration;
     int numRestarts;
     boolean fitSingle;
-    boolean fitDouble;
-    boolean fitTriple;
-    int binFactor;
-    double cameraGain;
+    static boolean fitDouble;
+    static boolean fitTriple;
+    static int binFactor;
+    static double cameraGain;
     private static double lambda;
     private static double NA;
     private static double pixSize;
@@ -194,6 +194,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     double chC_Kmean;
     double chD_Kmean;
     double chE_Kmean;
+    
+    AzeroCurveFitter cfAzeroInst=new AzeroCurveFitter();
             
     /**
      * Creates new form Photoswitching_Phasor_Plotter
@@ -2700,6 +2702,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         if (!useChA_CB.isSelected()) {
             useChA = false;
         }
+        //set for other instances
+
     }//GEN-LAST:event_useChA_CBStateChanged
 
     private void useChB_CBStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_useChB_CBStateChanged
@@ -2710,6 +2714,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         if (!useChB_CB.isSelected()) {
             useChB = false;
         }
+
     }//GEN-LAST:event_useChB_CBStateChanged
 
     private void useChC_CBStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_useChC_CBStateChanged
@@ -2720,6 +2725,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         if (!useChC_CB.isSelected()) {
             useChC = false;
         }
+
     }//GEN-LAST:event_useChC_CBStateChanged
 
     private void useChD_CBStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_useChD_CBStateChanged
@@ -2730,6 +2736,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         if (!useChD_CB.isSelected()) {
             useChD = false;
         }
+
     }//GEN-LAST:event_useChD_CBStateChanged
 
     private void useChE_CBStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_useChE_CBStateChanged
@@ -2740,6 +2747,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         if (!useChE_CB.isSelected()) {
             useChE = false;
         }
+
     }//GEN-LAST:event_useChE_CBStateChanged
 
     private void readReferenceDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readReferenceDataActionPerformed
@@ -2917,7 +2925,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
-    	new ImageJ();
+    	//new ImageJ();
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -3404,6 +3412,32 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     	IJ.log(output);
     	
     }
+    
+    //newchanges
+    public void psAzeroExponentialFit() throws Exception {
+    	
+        IJ.resetMinAndMax(img);
+        //in case the image is opened without using the plugin BioFormats button
+        String dir0 = IJ.getDirectory("image");
+        String stackToOpen = img.getTitle();
+        String id2 = dir0 + stackToOpen;
+        String fExt = id2.substring(id2.lastIndexOf("."), id2.length());
+        if (fExt.contains(" ") && fExt.indexOf(" ") < id2.length()) {
+            fExt = fExt.substring(0, fExt.indexOf(" "));
+        }
+        id = id2.substring(0, id2.lastIndexOf(".")) + fExt;
+        
+        //call the init
+        
+        //call the new fitting function here
+        
+        initAZeroFitting();//initializes all the parameters for fitting class
+        cfAzeroInst.psFRETFitAzeroExponential(); //call to the main exponential function, replaces the call to psFRET_Fit_Azero_Exponential() in the previous program/
+        
+        //what about the values used in the subsequent function
+        
+    }
+    
     public void psFRET_Fit_Azero_Exponential() throws Exception {
         //this method is the same as above except that the rate constants are fixed and only the fractional components are fitted
         
@@ -3419,6 +3453,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         }
         id = id2.substring(0, id2.lastIndexOf(".")) + fExt;
 
+        //the init should go here
+        
         final ImageStack img2 = img.getStack();
         imageH = img2.getHeight();
         imageW = img2.getWidth();
@@ -3955,7 +3991,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         return chi2ToReturn;
     }
     
-    public double calculateReducedChi2(double[] residualArray, double[] dataArray) {
+    public static double calculateReducedChi2(double[] residualArray, double[] dataArray) {
         //returns a reduced Chi2
         //pixel values are converted into photoelectrons using the camera gain
         //since we we also bin pixels, are using a camera and we are still limited by diffraction
@@ -4349,6 +4385,26 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     }
 
 
+    //initialized all the parameters before the fitting starts
+    public void initAZeroFitting() {
+    	//call all the init function written in the the AzeroCurve fit class to tranfer value from here
+    	cfAzeroInst.setID(id);
+    	cfAzeroInst.setChi2CutOff(Chi2CutOff);
+    	cfAzeroInst.setChannelMean(chA_Kmean, chA_Kmean, chA_Kmean, chA_Kmean, chA_Kmean);
+    	cfAzeroInst.setUseChannelValues(useChA, useChB, useChC, useChD, useChE);
+    	cfAzeroInst.initCycleNums(numCycles, imagesPerCycle);
+    	cfAzeroInst.setPixelThreshold(PixelThresholdCutOff);
+    	cfAzeroInst.setChi2CutOff(Chi2CutOff);
+    	cfAzeroInst.setHarmonicOmega(harmonic, Omega);
+    	cfAzeroInst.setIteration(maxiteration);
+    	cfAzeroInst.copyPhasorData(arrayChA, arrayChB, arrayChC, arrayChD, arrayChE);
+    	cfAzeroInst.setPhasorBooleans(usePhasortoInitialize, isPhasorFitDone);//recheck to make sure it is done properly
+    	
+    	
+    	
+    	
+    	
+    }
 
     
     
@@ -5121,6 +5177,8 @@ public void unMixPixelValuesAndCreateImages(double[]arrayOfMeanGRef, double[]arr
         if(useChE)
             createUnmixedImage(chE_name, arrayChE);
     } 
+
+
 
 public void unMixPixelValuesAndCreateImagesUsingFit() {
  //if the fractional contributions are calculated by fits using psFRET_Fit_Azero_Exponential()
