@@ -2837,7 +2837,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     }//GEN-LAST:event_chE_Kmean_TFPropertyChange
 
     private void unMixSignalsUsingFitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unMixSignalsUsingFitActionPerformed
-        unMixPixelValuesAndCreateImagesUsingFit();
+       // unMixPixelValuesAndCreateImagesUsingFit(); //newcode
+    	cfAzeroInst.unMixPixelValuesAndCreateImagesUsingFit();
     }//GEN-LAST:event_unMixSignalsUsingFitActionPerformed
 
     private void fitAzeroFixedExponentialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fitAzeroFixedExponentialActionPerformed
@@ -2887,7 +2888,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         IJ.log("outside try");
         try {
         	IJ.log("before fit function called");
-            psFRET_Fit_Azero_Exponential();
+            //psFRET_Fit_Azero_Exponential(); //this newcode. This code is functional and runs the hybrid version and tested to be functional
+        	psAzeroExponentialFit(); //this is the new code, test required
             
         } catch (Exception ex) {
             Logger.getLogger(Photoswitching_Phasor_Plotter.class.getName()).log(Level.SEVERE, null, ex);
@@ -4388,9 +4390,11 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     //initialized all the parameters before the fitting starts
     public void initAZeroFitting() {
     	//call all the init function written in the the AzeroCurve fit class to tranfer value from here
+    	cfAzeroInst.setImagePlus(img);
     	cfAzeroInst.setID(id);
+    	cfAzeroInst.copyStringNamesFile(chA_name, chB_name, chC_name, chD_name, chE_name);
     	cfAzeroInst.setChi2CutOff(Chi2CutOff);
-    	cfAzeroInst.setChannelMean(chA_Kmean, chA_Kmean, chA_Kmean, chA_Kmean, chA_Kmean);
+    	cfAzeroInst.setChannelMean(chA_Kmean, chB_Kmean, chC_Kmean, chD_Kmean, chE_Kmean);
     	cfAzeroInst.setUseChannelValues(useChA, useChB, useChC, useChD, useChE);
     	cfAzeroInst.initCycleNums(numCycles, imagesPerCycle);
     	cfAzeroInst.setPixelThreshold(PixelThresholdCutOff);
@@ -4399,9 +4403,6 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     	cfAzeroInst.setIteration(maxiteration);
     	cfAzeroInst.copyPhasorData(arrayChA, arrayChB, arrayChC, arrayChD, arrayChE);
     	cfAzeroInst.setPhasorBooleans(usePhasortoInitialize, isPhasorFitDone);//recheck to make sure it is done properly
-    	
-    	
-    	
     	
     	
     }
@@ -5181,63 +5182,63 @@ public void unMixPixelValuesAndCreateImages(double[]arrayOfMeanGRef, double[]arr
 
 
 public void unMixPixelValuesAndCreateImagesUsingFit() {
- //if the fractional contributions are calculated by fits using psFRET_Fit_Azero_Exponential()
- //this will transfer those to the channel arrays and used to create unmixed images
- long startTime = System.currentTimeMillis();
-//use ROI to define exclusively one channel or another
-    arrayChA =new double[imageW][imageH][numCycles];
-    arrayChB =new double[imageW][imageH][numCycles];
-    arrayChC =new double[imageW][imageH][numCycles];
-    arrayChD =new double[imageW][imageH][numCycles];
-    arrayChE =new double[imageW][imageH][numCycles];
-    for (int cyc = 0; cyc < numCycles; cyc++) {
-        for (int y = 0; y < imageH; y++) {
-            for (int x = 0; x < imageW; x++) {
-                if (!Double.isNaN(a1DataG[x][y][cyc])) {
-                    arrayChA[x][y][cyc] = a1DataG[x][y][cyc];
-                } else {
-                    arrayChA[x][y][cyc] = Double.NaN;
-                }
-                if (!Double.isNaN(a2DataG[x][y][cyc])) {
-                    arrayChB[x][y][cyc] = a2DataG[x][y][cyc];
-                } else {
-                    arrayChB[x][y][cyc] = Double.NaN;
-                }
-                if (!Double.isNaN(a3DataG[x][y][cyc])) {
-                    arrayChC[x][y][cyc] = a3DataG[x][y][cyc];
-                } else {
-                    arrayChC[x][y][cyc] = Double.NaN;
-                }
-                if (!Double.isNaN(a4DataG[x][y][cyc])) {
-                    arrayChD[x][y][cyc] = a4DataG[x][y][cyc];
-                } else {
-                    arrayChD[x][y][cyc] = Double.NaN;
-                }
-                if (!Double.isNaN(a5DataG[x][y][cyc])) {
-                    arrayChE[x][y][cyc] = a5DataG[x][y][cyc];
-                } else {
-                    arrayChE[x][y][cyc] = Double.NaN;
-                }
-            }
-        }
-    }
-    
-    
-    long timeToCompletion = System.currentTimeMillis() - startTime;    
-    statusMessageArea.setText("Unmixing time: " + timeToCompletion);                                
-    statusMessageArea.update(statusMessageArea.getGraphics());
-    
-        if(useChA)
-            createUnmixedImage(chA_name, arrayChA);
-        if(useChB)
-            createUnmixedImage(chB_name, arrayChB);
-        if(useChC)
-            createUnmixedImage(chC_name, arrayChC);
-        if(useChD)
-            createUnmixedImage(chD_name, arrayChD);
-        if(useChE)
-            createUnmixedImage(chE_name, arrayChE);
-    } 
+	//if the fractional contributions are calculated by fits using psFRET_Fit_Azero_Exponential()
+	//this will transfer those to the channel arrays and used to create unmixed images
+	long startTime = System.currentTimeMillis();
+	//use ROI to define exclusively one channel or another
+	arrayChA =new double[imageW][imageH][numCycles];
+	arrayChB =new double[imageW][imageH][numCycles];
+	arrayChC =new double[imageW][imageH][numCycles];
+	arrayChD =new double[imageW][imageH][numCycles];
+	arrayChE =new double[imageW][imageH][numCycles];
+	for (int cyc = 0; cyc < numCycles; cyc++) {
+		for (int y = 0; y < imageH; y++) {
+			for (int x = 0; x < imageW; x++) {
+				if (!Double.isNaN(a1DataG[x][y][cyc])) {
+					arrayChA[x][y][cyc] = a1DataG[x][y][cyc];
+				} else {
+					arrayChA[x][y][cyc] = Double.NaN;
+				}
+				if (!Double.isNaN(a2DataG[x][y][cyc])) {
+					arrayChB[x][y][cyc] = a2DataG[x][y][cyc];
+				} else {
+					arrayChB[x][y][cyc] = Double.NaN;
+				}
+				if (!Double.isNaN(a3DataG[x][y][cyc])) {
+					arrayChC[x][y][cyc] = a3DataG[x][y][cyc];
+				} else {
+					arrayChC[x][y][cyc] = Double.NaN;
+				}
+				if (!Double.isNaN(a4DataG[x][y][cyc])) {
+					arrayChD[x][y][cyc] = a4DataG[x][y][cyc];
+				} else {
+					arrayChD[x][y][cyc] = Double.NaN;
+				}
+				if (!Double.isNaN(a5DataG[x][y][cyc])) {
+					arrayChE[x][y][cyc] = a5DataG[x][y][cyc];
+				} else {
+					arrayChE[x][y][cyc] = Double.NaN;
+				}
+			}
+		}
+	}
+
+
+	long timeToCompletion = System.currentTimeMillis() - startTime;    
+	statusMessageArea.setText("Unmixing time: " + timeToCompletion);                                
+	statusMessageArea.update(statusMessageArea.getGraphics());
+
+	if(useChA)
+		createUnmixedImage(chA_name, arrayChA);
+	if(useChB)
+		createUnmixedImage(chB_name, arrayChB);
+	if(useChC)
+		createUnmixedImage(chC_name, arrayChC);
+	if(useChD)
+		createUnmixedImage(chD_name, arrayChD);
+	if(useChE)
+		createUnmixedImage(chE_name, arrayChE);
+} 
 
     public ImagePlus createUnmixedImage(String channel, double[][][] theArray) {
         //plots the unmixed images

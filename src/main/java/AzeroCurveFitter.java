@@ -5,7 +5,6 @@
  * @author aksagar
  */
 import ij.*;
-import ij.IJ;
 import ij.io.*;
 import ij.gui.*;
 import ij.process.*;
@@ -99,18 +98,33 @@ public class AzeroCurveFitter {
     boolean useChD;
     boolean useChE;
     
-    //phasor data
+    //variable for image creation
     double[][][] arrayChA;
     double[][][] arrayChB;
     double[][][] arrayChC;
     double[][][] arrayChD;
     double[][][] arrayChE;
     
+    
+    //phasor data
+    double[][][] arrayChA_p;
+    double[][][] arrayChB_p;
+    double[][][] arrayChC_p;
+    double[][][] arrayChD_p;
+    double[][][] arrayChE_p;
+    
     double chA_Kmean;
     double chB_Kmean;
     double chC_Kmean;
     double chD_Kmean;
     double chE_Kmean;
+    
+    String chA_name;
+    String chB_name;
+    String chC_name;
+    String chD_name;
+    String chE_name;
+    
     
 	
 	//function to copy all the variables to the local variables
@@ -251,7 +265,7 @@ public class AzeroCurveFitter {
 	                            			a4DataG[x][y][cycleNum] = (float) fittedParam[5];
 	                            			a5DataG[x][y][cycleNum] = (float) fittedParam[6];
 	                            			
-	                            			if(cycleNum<(numCycles-1)) {//OPT copy fitted param for initialization for next cycle 
+	                            			if(cycleNum<(numCycles-1)) {//OPT copy fitted param for initialization for next cycle //newcode
 	                            				offsetDataG_t[x][y][cycleNum] = (float) fittedParam[1];
 	                                			a1DataG_t[x][y][cycleNum] = (float) fittedParam[2];
 	                                			a2DataG_t[x][y][cycleNum] = (float) fittedParam[3];
@@ -293,6 +307,8 @@ public class AzeroCurveFitter {
 	            //if (LogFitTime == true) {
 	              //  IJ.log("Image " + id + " cycle " + cycle + " processing time = " + (timeToCompletion / 1000) + " sec");
 	            //}
+	            
+	            IJ.log("Image " + id + " cycle " + cycle + " processing time = " + (timeToCompletion / 1000) + " sec");
 	            IJ.log("fitting function over psFRET_Fit_Azero_Exponential");
 	            //printSystemTime();
 	           
@@ -314,17 +330,17 @@ public class AzeroCurveFitter {
 
 	    	
 	    	
-			if(usePhasortoInitialize&&isPhasorFitDone) {
+			if(usePhasortoInitialize&&isPhasorFitDone) {//this should be for the first cycle only, add a condition
 				//now testing for first cycle only
 				//initialize using the data from phasor
 				//later expand and compare with subsequent cycles
-				//IJ.log("came here");
+				IJ.log("came here");
 	    		guess_o = 	0;
-	    		guess_a1 = 	arrayChA[x][y][0];
-	    		guess_a2 = 	arrayChB[x][y][0];                                
-	    		guess_a3 = 	arrayChC[x][y][0];
-	    		guess_a4 = 	arrayChD[x][y][0];                                
-	    		guess_a5 = 	arrayChE[x][y][0];
+	    		guess_a1 = 	arrayChA_p[x][y][0];
+	    		guess_a2 = 	arrayChB_p[x][y][0];                                
+	    		guess_a3 = 	arrayChC_p[x][y][0];
+	    		guess_a4 = 	arrayChD_p[x][y][0];                                
+	    		guess_a5 = 	arrayChE_p[x][y][0];
 			}
 		
 	    	
@@ -437,15 +453,24 @@ public class AzeroCurveFitter {
 	    
 	    
 	    public void copyPhasorData(double[][][] arrayChA, double[][][] arrayChB, double[][][] arrayChC, double[][][] arrayChD, double[][][] arrayChE) {
-	        this.arrayChA=arrayChA;
-	        this.arrayChB=arrayChB;
-	        this.arrayChC=arrayChC;
-	        this.arrayChD=arrayChD;
-	        this.arrayChE=arrayChE;
+	        this.arrayChA_p=arrayChA;
+	        this.arrayChB_p=arrayChB;
+	        this.arrayChC_p=arrayChC;
+	        this.arrayChD_p=arrayChD;
+	        this.arrayChE_p=arrayChE;
 	        
 	        //should we use the directly the variables or copy? make sure this is efficient
 
 	        
+	    }
+	    
+	    public void copyStringNamesFile(String chA_name, String chB_name, String chC_name, String chD_name, String chE_name ) {
+	    	this.chA_name=chA_name;
+	    	this.chB_name=chB_name;
+	    	this.chC_name=chC_name;
+	    	this.chD_name=chD_name;
+	    	this.chE_name=chE_name;
+	    	
 	    }
 	    
 	    public void setID(String ID) {
@@ -454,7 +479,7 @@ public class AzeroCurveFitter {
 	    
 	    public void setPhasorBooleans(boolean usePhasortoInitialize,boolean isPhasorFitDone) {
 	        this.usePhasortoInitialize=usePhasortoInitialize; 
-	        this.isPhasorFitDone=usePhasortoInitialize;
+	        this.isPhasorFitDone=isPhasorFitDone;
 	    }
 	  //*******************Utilities*******************************
 
@@ -624,6 +649,91 @@ public class AzeroCurveFitter {
 	          }
 	          return returnArray;
 	      }
+	      
+	      
+	      public void unMixPixelValuesAndCreateImagesUsingFit() {
+	    	  //if the fractional contributions are calculated by fits using psFRET_Fit_Azero_Exponential()
+	    	  //this will transfer those to the channel arrays and used to create unmixed images
+	    	  long startTime = System.currentTimeMillis();
+	    	  //use ROI to define exclusively one channel or another
+	    	  arrayChA =new double[imageW][imageH][numCycles];
+	    	  arrayChB =new double[imageW][imageH][numCycles];
+	    	  arrayChC =new double[imageW][imageH][numCycles];
+	    	  arrayChD =new double[imageW][imageH][numCycles];
+	    	  arrayChE =new double[imageW][imageH][numCycles];
+	    	  for (int cyc = 0; cyc < numCycles; cyc++) {
+	    		  for (int y = 0; y < imageH; y++) {
+	    			  for (int x = 0; x < imageW; x++) {
+	    				  if (!Double.isNaN(a1DataG[x][y][cyc])) {
+	    					  arrayChA[x][y][cyc] = a1DataG[x][y][cyc];
+	    				  } else {
+	    					  arrayChA[x][y][cyc] = Double.NaN;
+	    				  }
+	    				  if (!Double.isNaN(a2DataG[x][y][cyc])) {
+	    					  arrayChB[x][y][cyc] = a2DataG[x][y][cyc];
+	    				  } else {
+	    					  arrayChB[x][y][cyc] = Double.NaN;
+	    				  }
+	    				  if (!Double.isNaN(a3DataG[x][y][cyc])) {
+	    					  arrayChC[x][y][cyc] = a3DataG[x][y][cyc];
+	    				  } else {
+	    					  arrayChC[x][y][cyc] = Double.NaN;
+	    				  }
+	    				  if (!Double.isNaN(a4DataG[x][y][cyc])) {
+	    					  arrayChD[x][y][cyc] = a4DataG[x][y][cyc];
+	    				  } else {
+	    					  arrayChD[x][y][cyc] = Double.NaN;
+	    				  }
+	    				  if (!Double.isNaN(a5DataG[x][y][cyc])) {
+	    					  arrayChE[x][y][cyc] = a5DataG[x][y][cyc];
+	    				  } else {
+	    					  arrayChE[x][y][cyc] = Double.NaN;
+	    				  }
+	    			  }
+	    		  }
+	    	  }
+
+
+
+	    	  //	    	     statusMessageArea.setText("Unmixing time: " + timeToCompletion);               //TBD                 
+	    	  //	    	     statusMessageArea.update(statusMessageArea.getGraphics());
+
+	    	  if(useChA)
+	    		  createUnmixedImage(chA_name, arrayChA);
+	    	  if(useChB)
+	    		  createUnmixedImage(chB_name, arrayChB);
+	    	  if(useChC)
+	    		  createUnmixedImage(chC_name, arrayChC);
+	    	  if(useChD)
+	    		  createUnmixedImage(chD_name, arrayChD);
+	    	  if(useChE)
+	    		  createUnmixedImage(chE_name, arrayChE);
+	      } 
+	      
+	      public ImagePlus createUnmixedImage(String channel, double[][][] theArray) {
+	          //plots the unmixed images
+	          ImagePlus imp = IJ.createImage(channel, "32-bit", imageW, imageH, numCycles);
+	          
+	          for (int cyc = 0; cyc < numCycles; cyc++) {
+	              imp.setSlice(cyc + 1);
+	              ImageProcessor ip = imp.getProcessor();
+	              FloatProcessor fip = (FloatProcessor) ip.convertToFloat();
+	              for (int y = 0; y < imageH; y++) {
+	                  for (int x = 0; x < imageW; x++) {
+	                      if (Double.isNaN(theArray[x][y][cyc])) {
+	                          fip.setf(x, y, Float.NaN);
+	                      } else {
+	                          fip.setf(x, y, (float) theArray[x][y][cyc]);
+	                      }
+	                  }
+	              }
+	              IJ.resetMinAndMax(imp);
+	          }
+	          
+	          imp.show();
+	          return imp;
+	      }    
+
 
 
 }
