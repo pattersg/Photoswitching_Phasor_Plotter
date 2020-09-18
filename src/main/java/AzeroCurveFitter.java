@@ -126,6 +126,8 @@ public class AzeroCurveFitter {
     String chE_name;
     
     
+    
+    
 	
 	//function to copy all the variables to the local variables
 	
@@ -330,11 +332,11 @@ public class AzeroCurveFitter {
 
 	    	
 	    	
-			if(usePhasortoInitialize&&isPhasorFitDone) {//this should be for the first cycle only, add a condition
+			if(usePhasortoInitialize&&isPhasorFitDone&&(cycleNum==0)) {//this should be for the first cycle only, add a condition
 				//now testing for first cycle only
 				//initialize using the data from phasor
 				//later expand and compare with subsequent cycles
-				IJ.log("came here");
+				//IJ.log("came here");
 	    		guess_o = 	0;
 	    		guess_a1 = 	arrayChA_p[x][y][0];
 	    		guess_a2 = 	arrayChB_p[x][y][0];                                
@@ -360,9 +362,6 @@ public class AzeroCurveFitter {
 	    	
 	    	double[] fitData= {0,guess_o, guess_a1, guess_a2,guess_a3,guess_a4,guess_a5};
 	    	return fitData; 
-	    	
-	    	
-	    	
 	    	
 	    }
 	    
@@ -472,6 +471,8 @@ public class AzeroCurveFitter {
 	    	this.chE_name=chE_name;
 	    	
 	    }
+	    
+
 	    
 	    public void setID(String ID) {
 	    	this.id=ID;

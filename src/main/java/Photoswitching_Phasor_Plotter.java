@@ -196,6 +196,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     double chE_Kmean;
     
     AzeroCurveFitter cfAzeroInst=new AzeroCurveFitter();
+    PhasorOperation phasorFitter= new PhasorOperation();
             
     /**
      * Creates new form Photoswitching_Phasor_Plotter
@@ -1896,7 +1897,10 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 chWarnOff = wfc.getNextBoolean();
             }
             try {
-                run_PhasorPlot_on_Stack();
+            	//newcode
+                //run_PhasorPlot_on_Stack();
+            	initPhasorFitting();
+            	phasorFitter.RunPhasorPlotStack();
             } catch (Exception ex) {
                 Logger.getLogger(Photoswitching_Phasor_Plotter.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -2564,10 +2568,21 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         arraySToSend[2]=chC_Smean;
         arrayGToSend[3]=chD_Smean;
         arrayGToSend[4]=chE_Smean;
-        if(GmData==null || GsData==null || AZeroData==null)
-            IJ.showMessage("Phasor plotter", "Please run the phasor plotting on the dataset first");
-        unMixPixelValuesAndCreateImages(arrayGToSend, arraySToSend);
-        writeReferenceDataToFile();
+        
+        
+//        if(GmData==null || GsData==null || AZeroData==null)
+//            IJ.showMessage("Phasor plotter", "Please run the phasor plotting on the dataset first");
+//        unMixPixelValuesAndCreateImages(arrayGToSend, arraySToSend);
+//        writeReferenceDataToFile();
+        
+        //newcode
+        if(phasorFitter.isPhasorCalcOver()) {
+        	 IJ.showMessage("Phasor plotter", "Please run the phasor plotting on the dataset first");
+        }
+        unmixPhasorInit();
+        phasorFitter.unMixPixelValuesAndCreateImages(arrayGToSend, arraySToSend);
+        
+        
     }//GEN-LAST:event_unMixSignalsActionPerformed
 
     private void getChannelAROIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getChannelAROIActionPerformed
@@ -3197,7 +3212,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                                     }
                                     //the pixel values are retrieved slightly differently depending on a hyperstack or not 
                                 }
-                                pixelsArrayOfArrays[threadIndex] = subtractValueFromArray(pixelsArrayOfArrays[threadIndex], ((cameraOffset*binFactor*binFactor)));
+                                pixelsArrayOfArrays[threadIndex] = UtilityFunction.subtractValueFromArray(pixelsArrayOfArrays[threadIndex], ((cameraOffset*binFactor*binFactor)));
                                 //subtract the offset from the pixel values
                                 //camera offsets are usually 100 counts per pixel
                                 //binning obviously sums from multiple pixels
@@ -3549,7 +3564,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                             			pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, (cycleNum * imagesPerCycle) + z);
                             		}
                             	}
-                            	pixelsArrayOfArrays[threadIndex] = subtractValueFromArray(pixelsArrayOfArrays[threadIndex], cameraOffset*binFactor*binFactor);
+                            	pixelsArrayOfArrays[threadIndex] = UtilityFunction.subtractValueFromArray(pixelsArrayOfArrays[threadIndex], cameraOffset*binFactor*binFactor);
                             	double firstframeint = pixelsArrayOfArrays[threadIndex][0];
                             	double lastframeint = pixelsArrayOfArrays[threadIndex][pixelsArrayOfArrays[threadIndex].length - 1];
                             	//double tau = findTauEstimate(timeDataArrayOfArrays[threadIndex], pixelsArrayOfArrays[threadIndex], firstframeint, lastframeint); //OPT not sure if needed commenting to test
@@ -3719,7 +3734,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         double[] returnArray = new double[paramsPassed.length];
         Arrays.fill(returnArray, 0);
 
-        double[] paramVariations = multiplyArrayByValue(params, varParam);
+        double[] paramVariations = UtilityFunction.multiplyArrayByValue(params, varParam);
         CurveFitter cf = new CurveFitter(x, y);
 
         if (fitDouble || fitTriple) {
@@ -3758,9 +3773,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 arrayOfIndices[1] = 4;
                 arrayOfIndices[2] = 6;
 
-                int maxValueIndex = getIndexOfMaxValue(arrayOfIndices, arrayOfValues);
-                int minValueIndex = getIndexOfMinValue(arrayOfIndices, arrayOfValues);
-                int midValueIndex = getIndexOfMiddle(arrayOfIndices, arrayOfValues);
+                int maxValueIndex = UtilityFunction.getIndexOfMaxValue(arrayOfIndices, arrayOfValues);
+                int minValueIndex = UtilityFunction.getIndexOfMinValue(arrayOfIndices, arrayOfValues);
+                int midValueIndex = UtilityFunction.getIndexOfMiddle(arrayOfIndices, arrayOfValues);
 
                 returnArray[2] = paramToReturn[maxValueIndex - 1] * paramToReturn[maxValueIndex - 1];
                 returnArray[3] = Math.pow(paramToReturn[maxValueIndex], 2);
@@ -3778,8 +3793,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 arrayOfIndices[0] = 2;
                 arrayOfIndices[1] = 4;
 
-                int maxValueIndex = getIndexOfMaxValue(arrayOfIndices, arrayOfValues);
-                int minValueIndex = getIndexOfMinValue(arrayOfIndices, arrayOfValues);
+                int maxValueIndex = UtilityFunction.getIndexOfMaxValue(arrayOfIndices, arrayOfValues);
+                int minValueIndex = UtilityFunction.getIndexOfMinValue(arrayOfIndices, arrayOfValues);
 
                 returnArray[2] = paramToReturn[maxValueIndex - 1] * paramToReturn[maxValueIndex - 1];
                 returnArray[3] = Math.pow(paramToReturn[maxValueIndex], 2);
@@ -3983,8 +3998,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     public double calculateChi2(double[] residualArray, double[] theFitArray) {
         //returns Pearson's Chi square; probably less helpful than the reduced Chi2
         double chi2ToReturn = 0;
-        double[] residualArray2 = multiplyTwoArrays(residualArray, residualArray);
-        double[] arrayToSum = divideTwoArrays(residualArray2, theFitArray);
+        double[] residualArray2 = UtilityFunction.multiplyTwoArrays(residualArray, residualArray);
+        double[] arrayToSum = UtilityFunction.divideTwoArrays(residualArray2, theFitArray);
         for (int tp = 0; tp < arrayToSum.length; tp++) {
             if (!Double.isInfinite(arrayToSum[tp])) {
                 chi2ToReturn += arrayToSum[tp];
@@ -4007,18 +4022,18 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         double weightedAverageVariance = 0;
         double sumWeightedVariance = 0;
 
-        residualArray = multiplyArrayByValue(residualArray,binFactorImage*binFactorImage);//in case of post-processing bin averaging to get total signal
-        dataArray = multiplyArrayByValue(dataArray,binFactorImage*binFactorImage);        
+        residualArray = UtilityFunction.multiplyArrayByValue(residualArray,binFactorImage*binFactorImage);//in case of post-processing bin averaging to get total signal
+        dataArray = UtilityFunction.multiplyArrayByValue(dataArray,binFactorImage*binFactorImage);        
         
-        residualArray = divideArrayByValue(residualArray,cameraGain);//convert to electrons
-        dataArray = divideArrayByValue(dataArray,cameraGain);//convert to electrons; this will also be the uncorrelated variance        
-        double[] coVarArray = multiplyArrayByValue(dataArray,binFactor*binFactor/numPixelsInPSF); 
+        residualArray = UtilityFunction.divideArrayByValue(residualArray,cameraGain);//convert to electrons
+        dataArray = UtilityFunction.divideArrayByValue(dataArray,cameraGain);//convert to electrons; this will also be the uncorrelated variance        
+        double[] coVarArray = UtilityFunction.multiplyArrayByValue(dataArray,binFactor*binFactor/numPixelsInPSF); 
         //if occuring covariance should be within a PSF. The total signal is scaled by the 
         //number of unbinned pixels (number of actual measurements) in a PSF
         //these would be the camera pixels which may have correlated noise
         //this is more of a problem with larger Rois
         //I don't think this is an issue with TCSPC FLIM imaging, which the field from which I'm trying to borrow methods
-        dataArray=addTwoArrays(dataArray,coVarArray);//total variance
+        dataArray=UtilityFunction.addTwoArrays(dataArray,coVarArray);//total variance
         
         for(int da=0;da<dataArray.length;da++){
             if(dataArray[da]>0)//if the data are negative or zero, do not use in Chi2 determination
@@ -4030,7 +4045,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             if(dataArray[wa]>0)//if the data are negative or zero, do not use in Chi2 determination
                 weightArray[wa] = (1/dataArray[wa])/weightedAverageVariance;
         }
-        double[] residualArray2 = multiplyTwoArrays(residualArray, residualArray);
+        double[] residualArray2 = UtilityFunction.multiplyTwoArrays(residualArray, residualArray);
         //double[] arrayToSum = multiplyTwoArrays(residualArray2, weightArray);
         double[] arrayToSum = new double[residualArray2.length];
         for (int tp = 0; tp < arrayToSum.length; tp++) {
@@ -4306,7 +4321,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         }
         Plot plotResiduals = new Plot("Residuals", xLabel, yLabel);
         if (k1DataG != null) {
-            double[] resArray = subtractArrayFromArray(yForResiduals, fitToAdd);
+            double[] resArray = UtilityFunction.subtractArrayFromArray(yForResiduals, fitToAdd);
             plotResiduals.add("circles", x, resArray);
             if (!(ymin == 0.0 && ymax == 0.0)) {
                 double[] a = Tools.getMinMax(x);
@@ -4406,7 +4421,36 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     	
     	
     }
+    
+    //initialized all the parameters before the fitting starts
+    public void initPhasorFitting() {
+    	//call all the init function written in the the AzeroCurve fit class to tranfer value from here
+    	phasorFitter.setImagePlus(img);
+    	phasorFitter.setID(id);
+    	phasorFitter.copyStringNamesFile(chA_name, chB_name, chC_name, chD_name, chE_name);
+    	phasorFitter.setChi2CutOff(Chi2CutOff);
+    	//phasorFitter.setChannelMean(chA_Kmean, chB_Kmean, chC_Kmean, chD_Kmean, chE_Kmean);
+    	phasorFitter.setUseChannelValues(useChA, useChB, useChC, useChD, useChE);
+    	phasorFitter.initCycleNums(numCycles, imagesPerCycle);
+    	phasorFitter.setPixelThreshold(PixelThresholdCutOff);
+    	phasorFitter.setChi2CutOff(Chi2CutOff);
+    	phasorFitter.setHarmonicOmega(harmonic, Omega);
+    	phasorFitter.setCameraOffset(cameraOffset);
+    	phasorFitter.setToneHalfEstimate(useTOneHalfEstimate);
+    	phasorFitter.setBinFactor(binFactor);
+    	phasorFitter.setThreshold(threshold, terminalThreshold);
+    	phasorFitter.setMedianFilter(medianFilter, applicationsMedianFilter);
+    	//phasorFitter.setIteration(maxiteration);
+    	//phasorFitter.copyPhasorData(arrayChA, arrayChB, arrayChC, arrayChD, arrayChE);
+    	//phasorFitter.setPhasorBooleans(usePhasortoInitialize, isPhasorFitDone);//recheck to make sure it is done properly
+    	
+    	
+    }
 
+    public void unmixPhasorInit(){    
+    	phasorFitter.copyArrayGTsend(arrayGToSend,arraySToSend);
+    	
+    }
     
     
     
@@ -4425,6 +4469,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         }
         id = id2.substring(0, id2.indexOf(".")) + fExt;
 
+        //start from here the function call
         final ImageStack img2 = img.getStack();
         imageH = img2.getHeight();
         imageW = img2.getWidth();
@@ -4604,7 +4649,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         //cf.doFit(0); //linear 
         //double[] fittedParam = cf.getParams();
         //offsetToReturn=Math.exp(fittedParam[0]);
-        double offsetToReturn = getMeanOfArray(last10YArray);
+        double offsetToReturn = UtilityFunction.getMeanOfArray(last10YArray);
         return offsetToReturn;
     }
     
@@ -4668,7 +4713,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     public double [] calculateCorrectedGmGs(double[] timeData, double[] pixelData, double[] bkGrdData, double omega) {
 
         double [] G = new double [3];
-        pixelData = subtractArrayFromArray(pixelData,bkGrdData);
+        pixelData = UtilityFunction.subtractArrayFromArray(pixelData,bkGrdData);
         //background subtraction before performing the phasor calculations
         double [] g0 = calculateGm(timeData, pixelData, bkGrdData, omega);
         double [] g1 = calculateGs(timeData, pixelData, bkGrdData, omega);
@@ -5068,100 +5113,100 @@ public double[] getFractionalContributions(double[]arrayOfMeanGRef, double[]arra
 
 
 public void unMixPixelValuesAndCreateImages(double[]arrayOfMeanGRef, double[]arrayOfMeanSRef) {
-//unmixes the signals from the first image of the photoswitching cycle using the 
-//fractional contributions determined from the phasor plots            
- long startTime = System.currentTimeMillis();
-//use ROI to define exclusively one channel or another
-    arrayChA =new double[imageW][imageH][numCycles];
-    arrayChB =new double[imageW][imageH][numCycles];
-    arrayChC =new double[imageW][imageH][numCycles];
-    arrayChD =new double[imageW][imageH][numCycles];
-    arrayChE =new double[imageW][imageH][numCycles];
-    for (int cyc = 0; cyc < numCycles; cyc++) {
-            for (int y = 0; y < imageH; y++) {
-                for (int x = 0; x < imageW; x++) {
-                        arrayChA[x][y][cyc] = Double.NaN;
-                        arrayChB[x][y][cyc] = Double.NaN;
-                        arrayChC[x][y][cyc] = Double.NaN;
-                        arrayChD[x][y][cyc] = Double.NaN;
-                        arrayChE[x][y][cyc] = Double.NaN;
-                }
-            }
-        }
-    
+	//unmixes the signals from the first image of the photoswitching cycle using the 
+	//fractional contributions determined from the phasor plots            
+	long startTime = System.currentTimeMillis();
+	//use ROI to define exclusively one channel or another
+	arrayChA =new double[imageW][imageH][numCycles];
+	arrayChB =new double[imageW][imageH][numCycles];
+	arrayChC =new double[imageW][imageH][numCycles];
+	arrayChD =new double[imageW][imageH][numCycles];
+	arrayChE =new double[imageW][imageH][numCycles];
+	for (int cyc = 0; cyc < numCycles; cyc++) {
+		for (int y = 0; y < imageH; y++) {
+			for (int x = 0; x < imageW; x++) {
+				arrayChA[x][y][cyc] = Double.NaN;
+				arrayChB[x][y][cyc] = Double.NaN;
+				arrayChC[x][y][cyc] = Double.NaN;
+				arrayChD[x][y][cyc] = Double.NaN;
+				arrayChE[x][y][cyc] = Double.NaN;
+			}
+		}
+	}
 
-    for (int cyc = 0; cyc < numCycles; cyc++) {
-        final Thread[] threads = newThreadArray();
-        for (int ithread = 0; ithread < threads.length; ithread++) {
-            final int threadIndex = ithread;
-            final int cycleNum = cyc;
-            final int height = imageH;
-            final int width = imageW;
-            
-            double[] timeData = new double[imagesPerCycle];
-            for (int k = 0; k < imagesPerCycle; k++) {
-                timeData[k] = (timeData3[k + (cyc * imagesPerCycle)] - timeData3[cyc * imagesPerCycle]);
-            }
 
-            // Concurrently run in as many threads as CPUs  
-            threads[ithread] = new Thread() {
-                {
-                    setPriority(Thread.NORM_PRIORITY);
-                }
+	for (int cyc = 0; cyc < numCycles; cyc++) {
+		final Thread[] threads = newThreadArray();
+		for (int ithread = 0; ithread < threads.length; ithread++) {
+			final int threadIndex = ithread;
+			final int cycleNum = cyc;
+			final int height = imageH;
+			final int width = imageW;
 
-                @Override
-                public void run() {
-                    for (int y = threadIndex * height / threads.length; y < (threadIndex + 1) * height / threads.length; y++) {
-                        if (threadIndex == threads.length - 1) {
-                            int startY = threadIndex * height / threads.length;
-                            int endY = (threadIndex + 1) * height / threads.length;
-                            int progress = (int) Math.round(((double) (y - startY) / (double)(endY - startY)) * 100.0);
-                            statusMessageArea.setText("Unmixing progress: " + progress + " %  of cycle " + (cycleNum + 1) + " of " + numCycles + " total cycles");                                
-                            statusMessageArea.update(statusMessageArea.getGraphics());
-                        }
-                        for (int x = 0; x < width; x++) {
-                            if (Double.isNaN(GmData[x][y][cycleNum]) || Double.isNaN(GsData[x][y][cycleNum])) {
-                                arrayChA[x][y][cycleNum] = Double.NaN;
-                                arrayChB[x][y][cycleNum] = Double.NaN;
-                                arrayChC[x][y][cycleNum] = Double.NaN;
-                                arrayChD[x][y][cycleNum] = Double.NaN;
-                                arrayChE[x][y][cycleNum] = Double.NaN;
-                            } else if (Double.isNaN(arrayChA[x][y][cycleNum]) && Double.isNaN(arrayChB[x][y][cycleNum]) && Double.isNaN(arrayChC[x][y][cycleNum]) && Double.isNaN(arrayChD[x][y][cycleNum]) && Double.isNaN(arrayChE[x][y][cycleNum])) {
-                                double [] fracContribArray = new double [5];
-                                fracContribArray = getFractionalContributions(arrayGToSend, arraySToSend, GmData[x][y][cycleNum], GsData[x][y][cycleNum]);
-                                arrayChA[x][y][cycleNum] = fracContribArray[0] * pixelSumData[x][y][cycleNum];
-                                arrayChB[x][y][cycleNum] = fracContribArray[1] * pixelSumData[x][y][cycleNum];
-                                arrayChC[x][y][cycleNum] = fracContribArray[2] * pixelSumData[x][y][cycleNum];
-                                arrayChD[x][y][cycleNum] = fracContribArray[3] * pixelSumData[x][y][cycleNum];
-                                arrayChE[x][y][cycleNum] = fracContribArray[4] * pixelSumData[x][y][cycleNum];
-                                
-                                //IJ.log("arrayChA[x][y][cycleNum]="+arrayChA[x][y][cycleNum]+"   fracContribArray[1]="+fracContribArray[0]+"    pixelSumData[x][y][cycleNum]="+pixelSumData[x][y][cycleNum]);
-                                double ChALifetime = arraySToSend[0]/(Omega * arrayGToSend[0]);
-                                double ChBLifetime = arraySToSend[1]/(Omega * arrayGToSend[1]);
-                                double ChCLifetime = arraySToSend[2]/(Omega * arrayGToSend[2]);
-                                double ChDLifetime = arraySToSend[3]/(Omega * arrayGToSend[3]);
-                                double ChELifetime = arraySToSend[4]/(Omega * arrayGToSend[4]);
-                                
-                                double theLifetime = GsData[x][y][cycleNum]/(Omega * GmData[x][y][cycleNum]);
-                                
-                                double totalTime = timeData[1]-timeData[0];//exposure time
-                                
-                                arrayChA[x][y][cycleNum] = (fracContribArray[0] * pixelSumData[x][y][cycleNum])/(ChALifetime*Math.exp(totalTime/theLifetime));
-                                arrayChB[x][y][cycleNum] = (fracContribArray[1] * pixelSumData[x][y][cycleNum])/(ChBLifetime*Math.exp(totalTime/theLifetime));
-                                arrayChC[x][y][cycleNum] = (fracContribArray[2] * pixelSumData[x][y][cycleNum])/(ChCLifetime*Math.exp(totalTime/theLifetime));
-                                arrayChD[x][y][cycleNum] = (fracContribArray[3] * pixelSumData[x][y][cycleNum])/(ChDLifetime*Math.exp(totalTime/theLifetime));
-                                arrayChE[x][y][cycleNum] = (fracContribArray[4] * pixelSumData[x][y][cycleNum])/(ChELifetime*Math.exp(totalTime/theLifetime));
-                                                                
-                                //IJ.log("ChALifetime ="+ChALifetime+"   ChBLifetime ="+ChBLifetime+"   pixelSumData[x][y][cycleNum]="+pixelSumData[x][y][cycleNum]+"   fracContribArray[0]="+fracContribArray[0]+"   fracContribArray[1]="+fracContribArray[1]+"   arrayChA[x][y][cycleNum]="+arrayChA[x][y][cycleNum]+"   arrayChB[x][y][cycleNum]="+arrayChB[x][y][cycleNum]);
-                               
-                            }
-                        }//x
-                    }//y
-                }
-            };
-        }
-    startAndJoin(threads);
-    }//cyc
+			double[] timeData = new double[imagesPerCycle];
+			for (int k = 0; k < imagesPerCycle; k++) {
+				timeData[k] = (timeData3[k + (cyc * imagesPerCycle)] - timeData3[cyc * imagesPerCycle]);
+			}
+
+			// Concurrently run in as many threads as CPUs  
+			threads[ithread] = new Thread() {
+				{
+					setPriority(Thread.NORM_PRIORITY);
+				}
+
+				@Override
+				public void run() {
+					for (int y = threadIndex * height / threads.length; y < (threadIndex + 1) * height / threads.length; y++) {
+						if (threadIndex == threads.length - 1) {
+							int startY = threadIndex * height / threads.length;
+							int endY = (threadIndex + 1) * height / threads.length;
+							int progress = (int) Math.round(((double) (y - startY) / (double)(endY - startY)) * 100.0);
+							statusMessageArea.setText("Unmixing progress: " + progress + " %  of cycle " + (cycleNum + 1) + " of " + numCycles + " total cycles");                                
+							statusMessageArea.update(statusMessageArea.getGraphics());
+						}
+						for (int x = 0; x < width; x++) {
+							if (Double.isNaN(GmData[x][y][cycleNum]) || Double.isNaN(GsData[x][y][cycleNum])) {
+								arrayChA[x][y][cycleNum] = Double.NaN;
+								arrayChB[x][y][cycleNum] = Double.NaN;
+								arrayChC[x][y][cycleNum] = Double.NaN;
+								arrayChD[x][y][cycleNum] = Double.NaN;
+								arrayChE[x][y][cycleNum] = Double.NaN;
+							} else if (Double.isNaN(arrayChA[x][y][cycleNum]) && Double.isNaN(arrayChB[x][y][cycleNum]) && Double.isNaN(arrayChC[x][y][cycleNum]) && Double.isNaN(arrayChD[x][y][cycleNum]) && Double.isNaN(arrayChE[x][y][cycleNum])) {
+								double [] fracContribArray = new double [5];
+								fracContribArray = getFractionalContributions(arrayGToSend, arraySToSend, GmData[x][y][cycleNum], GsData[x][y][cycleNum]);
+								arrayChA[x][y][cycleNum] = fracContribArray[0] * pixelSumData[x][y][cycleNum];
+								arrayChB[x][y][cycleNum] = fracContribArray[1] * pixelSumData[x][y][cycleNum];
+								arrayChC[x][y][cycleNum] = fracContribArray[2] * pixelSumData[x][y][cycleNum];
+								arrayChD[x][y][cycleNum] = fracContribArray[3] * pixelSumData[x][y][cycleNum];
+								arrayChE[x][y][cycleNum] = fracContribArray[4] * pixelSumData[x][y][cycleNum];
+
+								//IJ.log("arrayChA[x][y][cycleNum]="+arrayChA[x][y][cycleNum]+"   fracContribArray[1]="+fracContribArray[0]+"    pixelSumData[x][y][cycleNum]="+pixelSumData[x][y][cycleNum]);
+								double ChALifetime = arraySToSend[0]/(Omega * arrayGToSend[0]);
+								double ChBLifetime = arraySToSend[1]/(Omega * arrayGToSend[1]);
+								double ChCLifetime = arraySToSend[2]/(Omega * arrayGToSend[2]);
+								double ChDLifetime = arraySToSend[3]/(Omega * arrayGToSend[3]);
+								double ChELifetime = arraySToSend[4]/(Omega * arrayGToSend[4]);
+
+								double theLifetime = GsData[x][y][cycleNum]/(Omega * GmData[x][y][cycleNum]);
+
+								double totalTime = timeData[1]-timeData[0];//exposure time
+
+								arrayChA[x][y][cycleNum] = (fracContribArray[0] * pixelSumData[x][y][cycleNum])/(ChALifetime*Math.exp(totalTime/theLifetime));
+								arrayChB[x][y][cycleNum] = (fracContribArray[1] * pixelSumData[x][y][cycleNum])/(ChBLifetime*Math.exp(totalTime/theLifetime));
+								arrayChC[x][y][cycleNum] = (fracContribArray[2] * pixelSumData[x][y][cycleNum])/(ChCLifetime*Math.exp(totalTime/theLifetime));
+								arrayChD[x][y][cycleNum] = (fracContribArray[3] * pixelSumData[x][y][cycleNum])/(ChDLifetime*Math.exp(totalTime/theLifetime));
+								arrayChE[x][y][cycleNum] = (fracContribArray[4] * pixelSumData[x][y][cycleNum])/(ChELifetime*Math.exp(totalTime/theLifetime));
+
+								//IJ.log("ChALifetime ="+ChALifetime+"   ChBLifetime ="+ChBLifetime+"   pixelSumData[x][y][cycleNum]="+pixelSumData[x][y][cycleNum]+"   fracContribArray[0]="+fracContribArray[0]+"   fracContribArray[1]="+fracContribArray[1]+"   arrayChA[x][y][cycleNum]="+arrayChA[x][y][cycleNum]+"   arrayChB[x][y][cycleNum]="+arrayChB[x][y][cycleNum]);
+
+							}
+						}//x
+					}//y
+				}
+			};
+		}
+		startAndJoin(threads);
+	}//cyc
     isPhasorFitDone=true;// for hybrid fitting this needs to be true; 
     long timeToCompletion = System.currentTimeMillis() - startTime;    
     statusMessageArea.setText("Unmixing time: " + timeToCompletion);                                
@@ -5268,8 +5313,8 @@ public void unMixPixelValuesAndCreateImagesUsingFit() {
     
     public double [] getMeanFromFilteredData(double[][]theBounds) {
         //calculates the mean phase and modulation of a distribution of points
-        //on a phasor plot
-        //usually used to determine reference data points for unmixing
+        //on a Phasor plot
+        //usually used to determine reference data points for un-mixing
         double[]returnArray = new double[2];
         double sumG = 0;
         double sumS = 0;
@@ -5383,148 +5428,9 @@ public void unMixPixelValuesAndCreateImagesUsingFit() {
         double[] returnArray = {min, max, sum, mean};
         return returnArray;
     }
-      
-    private static double[] subtractArrayFromArray(double[] array1, double[] array2) {
-        if (array1.length != array2.length) {
-            IJ.showMessage("Phasor Plotter", "The time and data arrays are not the same length");
-            return null;
-        }
-        double[] arrayToReturn = new double[array1.length];
-        for (int i = 0; i < array1.length; i++) {
-            arrayToReturn[i] = array1[i] - array2[i];
-        }
-        return arrayToReturn;
 
-    }
+    
 
-    private static double[] multiplyTwoArrays(double[] array1, double[] array2) {
-        if (array1.length != array2.length) {
-            IJ.showMessage("Phasor Plotter", "The time and data arrays are not the same length");
-            return null;
-        }
-        double[] arrayToReturn = new double[array1.length];
-        for (int i = 0; i < array1.length; i++) {
-            arrayToReturn[i] = array1[i] * array2[i];
-        }
-        return arrayToReturn;
-    }
-
-    private static double[] divideTwoArrays(double[] array1, double[] array2) {
-        if (array1.length != array2.length) {
-            IJ.showMessage("Phasor Plotter", "The time and data arrays are not the same length");
-            return null;
-        }
-        double[] arrayToReturn = new double[array1.length];
-        for (int i = 0; i < array1.length; i++) {
-            arrayToReturn[i] = array1[i] / array2[i];
-        }
-        return arrayToReturn;
-    }
-
-    private static double[] subtractValueFromArray(double[] array1, double theValue) {
-        double[] arrayToReturn = new double[array1.length];
-        for (int i = 0; i < array1.length; i++) {
-            arrayToReturn[i] = array1[i] - theValue;
-        }
-        return arrayToReturn;
-    }
-    
-    private static double[] addValueToArray(double[] array1, double theValue) {
-        double[] arrayToReturn = new double[array1.length];
-        for (int i = 0; i < array1.length; i++) {
-            arrayToReturn[i] = array1[i] + theValue;
-        }
-        return arrayToReturn;
-    }
-
-    private static double[] divideArrayByValue(double[] array1, double theValue) {
-        double[] arrayToReturn = new double[array1.length];
-        for (int i = 0; i < array1.length; i++) {
-            arrayToReturn[i] = array1[i] / theValue;
-        }
-        return arrayToReturn;
-    }
-    
-    public static double getMeanOfArray(double[] theArray) {
-        double sum = 0;
-        for (int i = 0; i < theArray.length; i++) {
-            sum = sum + theArray[i];
-        }
-        return sum / theArray.length;
-    }
-    
-    public static double getMedianOfArray(double[] theArray) {
-        Arrays.sort(theArray);
-        if(theArray.length%2!=0)
-            return (double) theArray[theArray.length/2];
-        return (double) (theArray[(theArray.length-1)/2] + theArray[(theArray.length)/2])/2;
-    }
-
-    public static double getSumOfArray(double[] theArray) {
-        double sum = 0;
-        for (int i = 0; i < theArray.length; i++) {
-            sum = sum + theArray[i];
-        }
-        return sum;
-    }
-    
-    private static double[] multiplyArrayByValue(double[] array1, double theValue) {
-        double[] arrayToReturn = new double[array1.length];
-        for (int i = 0; i < array1.length; i++) {
-            arrayToReturn[i] = array1[i]*theValue;
-        }
-        return arrayToReturn;
-    }
-    
-    private static double[] addTwoArrays(double[] array1, double[] array2) {
-        if (array1.length != array2.length) {
-            IJ.showMessage("psFRET_T_Profiler", "The time and data arrays are not the same length");
-            return null;
-        }
-        double[] arrayToReturn = new double[array1.length];
-        for (int i = 0; i < array1.length; i++) {
-            arrayToReturn[i] = array1[i] + array2[i];
-        }
-        return arrayToReturn;
-    }
-    
-    int getIndexOfMaxValue(int [] indexArray, double [] valueArray){
-        double max = valueArray[0];
-        int maxIndex = indexArray[0];
-        for(int i=0; i<valueArray.length;i++){
-            if(valueArray[i]>max){
-                max=valueArray[i];
-                maxIndex=indexArray[i];
-            }
-        }
-        return maxIndex;
-    }
-    
-    int getIndexOfMinValue(int [] indexArray, double [] valueArray){
-        double min = valueArray[0];
-        int minIndex = indexArray[0];
-        for(int i=0; i<valueArray.length;i++){
-            if(valueArray[i]<min){
-                min=valueArray[i];
-                minIndex=indexArray[i];
-            }
-        }
-        return minIndex;
-    }
-        
-    int getIndexOfMiddle(int [] indexArray, double [] valueArray){
-        int maxIndex = getIndexOfMaxValue(indexArray, valueArray);
-        int minIndex = getIndexOfMinValue(indexArray, valueArray);
-        int midIndex = indexArray[indexArray.length-1];
-        for(int i=0; i<indexArray.length;i++){
-            if(indexArray[i]!=maxIndex && indexArray[i]!=minIndex){
-                midIndex=indexArray[i];
-            }
-        }
-        return midIndex;
-    }
-    
-    
     
     public double[][][] updateRateDataArray(double[][][]theDataArray) {
         double[][][] updateArray = new double[imageW][imageH][numCycles];
@@ -5553,7 +5459,7 @@ public void unMixPixelValuesAndCreateImagesUsingFit() {
                                 counter++;
                             }
                         }
-                        GDataMed [x][y][cyc]= getMedianOfArray(tempArray);
+                        GDataMed [x][y][cyc]= UtilityFunction.getMedianOfArray(tempArray);
                     }else{
                         GDataMed [x][y][cyc]= theDataToPlot [x][y][cyc];
                     }
