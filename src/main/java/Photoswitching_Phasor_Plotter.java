@@ -2285,10 +2285,16 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
     private void selectFromPhasorPlotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectFromPhasorPlotActionPerformed
         //double[] phasorPlotROI = getCalibratedPixelsFromPlotWindow(phasorPlot);
-        double[][] phasorPlotROI = getCalibratedPixelsFromPlotWindow(phasorPlot);
+    	
+    	phasorFitter.selectFromPhasorPlot();
+    	
+    	/*
+        double[][] phasorPlotROI = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorPlot);
             //IJ.log("xPos="+phasorPlotROI[0]+"  yPos="+phasorPlotROI[1]+"   cWidth="+phasorPlotROI[2]+"   cHeight="+phasorPlotROI[3]);
         double[][][] phasorFilteredData = filterDataFromPhasor(phasorPlotROI);
         ImagePlus filteredImage = createImage("filteredImage",phasorFilteredData);
+        */
+        
     }//GEN-LAST:event_selectFromPhasorPlotActionPerformed
 
     private void medianFilterCBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_medianFilterCBActionPerformed
@@ -2593,7 +2599,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
     private void getChannelAROIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getChannelAROIActionPerformed
         
-        phasorPlotROIChA = getCalibratedPixelsFromPlotWindow(phasorPlot);
+        phasorPlotROIChA = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorPlot);
         double[] phasorFilteredDataMeans = getMeanFromFilteredData(phasorPlotROIChA);
         chA_Gmean_TF.setText(String.valueOf(phasorFilteredDataMeans[0]));
         chA_Smean_TF.setText(String.valueOf(phasorFilteredDataMeans[1]));
@@ -2603,7 +2609,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
     private void getChannelBROIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getChannelBROIActionPerformed
         
-        phasorPlotROIChB = getCalibratedPixelsFromPlotWindow(phasorPlot);
+        phasorPlotROIChB = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorPlot);
         double[] phasorFilteredDataMeans = getMeanFromFilteredData(phasorPlotROIChB);
         chB_Gmean_TF.setText(String.valueOf(phasorFilteredDataMeans[0]));
         chB_Smean_TF.setText(String.valueOf(phasorFilteredDataMeans[1]));
@@ -2612,7 +2618,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
     private void getChannelCROIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getChannelCROIActionPerformed
         
-        phasorPlotROIChC = getCalibratedPixelsFromPlotWindow(phasorPlot);
+        phasorPlotROIChC = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorPlot);
         double[] phasorFilteredDataMeans = getMeanFromFilteredData(phasorPlotROIChC);
         chC_Gmean_TF.setText(String.valueOf(phasorFilteredDataMeans[0]));
         chC_Smean_TF.setText(String.valueOf(phasorFilteredDataMeans[1]));
@@ -2653,7 +2659,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     }//GEN-LAST:event_chC_Name_TFPropertyChange
 
     private void getChannelDROIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getChannelDROIActionPerformed
-        phasorPlotROIChD = getCalibratedPixelsFromPlotWindow(phasorPlot);
+        phasorPlotROIChD = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorPlot);
         double[] phasorFilteredDataMeans = getMeanFromFilteredData(phasorPlotROIChD);
         chD_Gmean_TF.setText(String.valueOf(phasorFilteredDataMeans[0]));
         chD_Smean_TF.setText(String.valueOf(phasorFilteredDataMeans[1]));
@@ -2685,7 +2691,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     }//GEN-LAST:event_chD_Name_TFPropertyChange
 
     private void getChannelEROIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getChannelEROIActionPerformed
-        phasorPlotROIChE = getCalibratedPixelsFromPlotWindow(phasorPlot);
+        phasorPlotROIChE = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorPlot);
         double[] phasorFilteredDataMeans = getMeanFromFilteredData(phasorPlotROIChE);
         chE_Gmean_TF.setText(String.valueOf(phasorFilteredDataMeans[0]));
         chE_Smean_TF.setText(String.valueOf(phasorFilteredDataMeans[1]));
@@ -4801,23 +4807,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     
 //*****************Phasor Plotting, etc. ***********************************    
     
-public static double[][] getCalibratedPixelsFromPlotWindow(Plot thePlot) {
-    //this gets the points within the ROI draw on a phasor plot
-    //it allows selection of subsets of data or a way to determine
-    //mean values for phase and modulation of data sets
-    //the first version required rectanglular ROIs since they are easy
-    //it was updated to use any ROI later
-        ImagePlus plotImg = thePlot.getImagePlus();
-        Roi roi = plotImg.getRoi();
-        Point[] pts = roi.getContainedPoints();
-        double[][] returnArray = new double [2][pts.length];
-        Calibration cal = plotImg.getCalibration();
-        for(int i=0;i<pts.length;i++){
-            returnArray[0][i]=cal.getX(pts[i].x);
-            returnArray[1][i]=-(cal.getY(pts[i].y));
-        }
-    return returnArray;
-    }
+
     //works only with rectangle ROIs
     /*public static double[] getCalibratedPixelsFromPlotWindow(Plot thePlot) {
         double[] returnArray = new double [4];
