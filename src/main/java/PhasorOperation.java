@@ -91,6 +91,8 @@ public class PhasorOperation {
 	int binFactor;
 	int maxiteration;
 
+    ImagePlus rateConstantImage;
+    
 	boolean useChA;
 	boolean useChB;
 	boolean useChC;
@@ -227,6 +229,12 @@ public class PhasorOperation {
     	this.medianFilter=medianFilter;
     	this.applicationsMedianFilter=applicationsMedianFilter;
 
+    }
+    
+    //getters
+    
+    public double[][][] getRateData() {
+    	return rateDataFromPhasor;
     }
 	public void RunPhasorPlotStack() throws Exception {
 		
@@ -403,11 +411,35 @@ public class PhasorOperation {
 		//phasorPlotWin = phasorPlot.show();
 		ImagePlus phasorPlotStack = phasorPlot.getImagePlus();
 		phasorPlotStack.show();
+		
+		//ImagePlus rateConstantImage = createImage("RateConstantsImage",rateDataFromPhasor);
 
 		//rateConstantImage = createImage("RateConstantsImage",rateDataFromPhasor);
 		//GmDataImage = createImage("GmDataImage",GmData);
 		//GsDataImage = createImage("GsDataImage",GsData);
 
+	}
+
+	public ImagePlus createImage(String titleOfImage, double[][][]theDataToPlot) {
+		//this is just a general image plotting method
+		ImagePlus imp = IJ.createImage(titleOfImage, "32-bit", imageW, imageH, numCycles);
+		for (int cyc = 0; cyc < numCycles; cyc++) {
+			imp.setSlice(cyc + 1);
+			ImageProcessor ip = imp.getProcessor();
+			FloatProcessor fip = (FloatProcessor) ip.convertToFloat();
+			for (int y = 0; y < imageH; y++) {
+				for (int x = 0; x < imageW; x++) {
+					if (Double.isNaN(theDataToPlot[x][y][cyc])) {
+						fip.setf(x, y, Float.NaN);
+					} else {
+						fip.setf(x, y, (float) theDataToPlot[x][y][cyc]);
+					}
+				}
+			}
+			IJ.resetMinAndMax(imp);
+		}
+		imp.show();
+		return imp;
 	}
 
 	
@@ -439,6 +471,7 @@ public class PhasorOperation {
     	}
 
 
+    	
     	for (int cyc = 0; cyc < numCycles; cyc++) {
     		final Thread[] threads = newThreadArray();
     		for (int ithread = 0; ithread < threads.length; ithread++) {
@@ -515,7 +548,7 @@ public class PhasorOperation {
     	long timeToCompletion = System.currentTimeMillis() - startTime;    
     	//statusMessageArea.setText("Unmixing time: " + timeToCompletion);                                
     	//statusMessageArea.update(statusMessageArea.getGraphics());
-
+    	//ßIJ.log("reached here "+Boolean.toString(useChA)+Boolean.toString(useChB)+Boolean.toString(useChC)+Boolean.toString(useChD)+Boolean.toString(useChE));
     	if(useChA)
     		createUnmixedImage(chA_name, arrayChA);
     	if(useChB)
@@ -1055,6 +1088,25 @@ public class PhasorOperation {
     	returnArray[4]=E;
     	return returnArray;
     } 
+    
+    public void makeRateConstantImage() {
+
+
+    	if (rateDataFromPhasor == null) {
+    		IJ.showMessage("Pixel Fitter", "No rate constant data available");
+    	} else {
+    		boolean imageOpenAlready = false;
+    		String[] imageTitles = WindowManager.getImageTitles();
+    		for (String imageTitle : imageTitles) {
+    			if (imageTitle.contains("RateConstantsImage")) {
+    				imageOpenAlready = true;
+    			}
+    		}
+    		if (!imageOpenAlready) {
+    			rateConstantImage = createImage("RateConstantsImage",rateDataFromPhasor);
+    		}
+    	}
+    }
 
     public ImagePlus createUnmixedImage(String channel, double[][][] theArray) {
         //plots the unmixed images

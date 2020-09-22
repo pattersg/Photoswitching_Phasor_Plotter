@@ -1843,20 +1843,25 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     }//GEN-LAST:event_fitExponentialActionPerformed
 
     private void makeRateConstantImageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_makeRateConstantImageActionPerformed
-        if (rateDataFromPhasor == null) {
-            IJ.showMessage("Pixel Fitter", "No rate constant data available");
-        } else {
-            boolean imageOpenAlready = false;
-            String[] imageTitles = WindowManager.getImageTitles();
-            for (String imageTitle : imageTitles) {
-                if (imageTitle.contains("RateConstantsImage")) {
-                    imageOpenAlready = true;
-                }
-            }
-            if (!imageOpenAlready) {
-                rateConstantImage = createImage("RateConstantsImage",rateDataFromPhasor);
-            }
-        }
+
+    	
+    	phasorFitter.makeRateConstantImage();
+    	/*
+		//this code is used when local class is used for fitting, uncomment it if you want to use the function in this class
+    	if (rateDataFromPhasor == null) {
+    		IJ.showMessage("Pixel Fitter", "No rate constant data available");
+    	} else {
+    		boolean imageOpenAlready = false;
+    		String[] imageTitles = WindowManager.getImageTitles();
+    		for (String imageTitle : imageTitles) {
+    			if (imageTitle.contains("RateConstantsImage")) {
+    				imageOpenAlready = true;
+    			}
+    		}
+    		if (!imageOpenAlready) {
+    			rateConstantImage = createImage("RateConstantsImage",rateDataFromPhasor);
+    		}
+    	}*/
     }//GEN-LAST:event_makeRateConstantImageActionPerformed
 
     private void PhasorStackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_PhasorStackActionPerformed
@@ -2581,6 +2586,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         }
         unmixPhasorInit();
         phasorFitter.unMixPixelValuesAndCreateImages(arrayGToSend, arraySToSend);
+       // writeReferenceDataToFile();
         
         
     }//GEN-LAST:event_unMixSignalsActionPerformed
@@ -4447,7 +4453,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     	
     }
 
-    public void unmixPhasorInit(){    
+    public void unmixPhasorInit(){   
+    	phasorFitter.setUseChannelValues(useChA, useChB, useChC, useChD, useChE);// to make sure it is cheked before fitting
     	phasorFitter.copyArrayGTsend(arrayGToSend,arraySToSend);
     	
     }
