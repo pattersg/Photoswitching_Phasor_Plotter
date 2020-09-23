@@ -197,6 +197,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     
     AzeroCurveFitter cfAzeroInst=new AzeroCurveFitter();
     PhasorOperation phasorFitter= new PhasorOperation();
+    ExpCurveFitter expFitter= new ExpCurveFitter();
             
     /**
      * Creates new form Photoswitching_Phasor_Plotter
@@ -1836,7 +1837,11 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             chWarnOff = wfc.getNextBoolean();
         }
         try {
-            psFRET_Fit_exponential();
+        	//newcode
+            //psFRET_Fit_exponential();
+            
+            initExpFitting();
+            expFitter.psFitExponential();
         } catch (Exception ex) {
             Logger.getLogger(Photoswitching_Phasor_Plotter.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -1844,7 +1849,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
     private void makeRateConstantImageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_makeRateConstantImageActionPerformed
 
-    	
+    	//newcode
     	phasorFitter.makeRateConstantImage();
     	/*
 		//this code is used when local class is used for fitting, uncomment it if you want to use the function in this class
@@ -2137,6 +2142,10 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     }//GEN-LAST:event_ExaminePixelsActionPerformed
 
     private void MakeSavePhasorParameterImageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MakeSavePhasorParameterImageActionPerformed
+    	
+    	phasorFitter.MakeSavePhasorParameterImage();
+    	
+    	/*
         if (rateDataFromPhasor == null || GmData == null || GsData == null) {//Chi2G == null) {
             IJ.showMessage("Pixel Fitter", "Fit parameter data unavailable");
         } else {
@@ -2182,7 +2191,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 //IJ.saveAs(imp, "Tiff", id2 + "_Chi2Image.tif");
                 //imp.close();
             }
-        }
+        }*/
     }//GEN-LAST:event_MakeSavePhasorParameterImageActionPerformed
 
     private void UseLogScaleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_UseLogScaleActionPerformed
@@ -4428,8 +4437,15 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     	cfAzeroInst.setChi2CutOff(Chi2CutOff);
     	cfAzeroInst.setHarmonicOmega(harmonic, Omega);
     	cfAzeroInst.setIteration(maxiteration);
-    	cfAzeroInst.copyPhasorData(arrayChA, arrayChB, arrayChC, arrayChD, arrayChE);
-    	cfAzeroInst.setPhasorBooleans(usePhasortoInitialize, isPhasorFitDone);//recheck to make sure it is done properly
+    	cfAzeroInst.setCameraOffset(cameraOffset);
+    	cfAzeroInst.setBinFactor(binFactor);
+
+    	//copies phasor data from the phasor fitting to zero fitter
+    	if(phasorFitter.isPhasorFitDone) {
+    		//cfAzeroInst.copyPhasorData(arrayChA, arrayChB, arrayChC, arrayChD, arrayChE);//copies phasor data from the phasor fitting to zero fitter
+    		cfAzeroInst.copyPhasorData(phasorFitter.getChAdata(), phasorFitter.getChBdata(),phasorFitter.getChCdata(), phasorFitter.getChDdata(), phasorFitter.getChEdata());
+    	}
+    	cfAzeroInst.setPhasorBooleans(usePhasortoInitialize, phasorFitter.isPhasorFitDone);//recheck to make sure it is done properly
     	
     	
     }
@@ -4452,13 +4468,39 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     	phasorFitter.setBinFactor(binFactor);
     	phasorFitter.setThreshold(threshold, terminalThreshold);
     	phasorFitter.setMedianFilter(medianFilter, applicationsMedianFilter);
-    	//phasorFitter.setIteration(maxiteration);
-    	//phasorFitter.copyPhasorData(arrayChA, arrayChB, arrayChC, arrayChD, arrayChE);
-    	//phasorFitter.setPhasorBooleans(usePhasortoInitialize, isPhasorFitDone);//recheck to make sure it is done properly
     	
     	
     }
 
+    
+    public void initExpFitting() {
+    	expFitter.setImagePlus(img);
+    	expFitter.setID(id);
+    	expFitter.copyStringNamesFile(chA_name, chB_name, chC_name, chD_name, chE_name);
+    	expFitter.setChi2CutOff(Chi2CutOff);
+    	expFitter.setChannelMean(chA_Kmean, chB_Kmean, chC_Kmean, chD_Kmean, chE_Kmean);
+    	expFitter.setUseChannelValues(useChA, useChB, useChC, useChD, useChE);
+    	expFitter.initCycleNums(numCycles, imagesPerCycle);
+    	expFitter.setPixelThreshold(PixelThresholdCutOff);
+    	expFitter.setChi2CutOff(Chi2CutOff);
+    	expFitter.setHarmonicOmega(harmonic, Omega);
+    	expFitter.setIteration(maxiteration);
+    	expFitter.setCameraOffset(cameraOffset);
+    	expFitter.setBinFactor(binFactor);
+    	expFitter.setChanneltoFit(fitSingle, fitDouble, fitTriple);
+    	expFitter.setCamergain(cameraGain);
+    	expFitter.setLamdaNA(lambda, NA);
+    	expFitter.setPixSizeBinfactor(pixSize, binFactorImage);
+    	expFitter.setVarParam(varParam);
+
+    	//copies phasor data from the phasor fitting to zero fitter
+    	if(phasorFitter.isPhasorFitDone) {
+    		//cfAzeroInst.copyPhasorData(arrayChA, arrayChB, arrayChC, arrayChD, arrayChE);//copies phasor data from the phasor fitting to zero fitter
+    		expFitter.copyPhasorData(phasorFitter.getChAdata(), phasorFitter.getChBdata(),phasorFitter.getChCdata(), phasorFitter.getChDdata(), phasorFitter.getChEdata());
+    	}
+    	expFitter.setPhasorBooleans(usePhasortoInitialize, phasorFitter.isPhasorFitDone);//recheck to make sure it is done properly
+    	
+    }
     public void unmixPhasorInit(){   
     	phasorFitter.setUseChannelValues(useChA, useChB, useChC, useChD, useChE);// to make sure it is cheked before fitting
     	phasorFitter.copyArrayGTsend(arrayGToSend,arraySToSend);
@@ -4722,6 +4764,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         return tOneHalfToReturn;
     }
 
+    //delete
     
     public double [] calculateCorrectedGmGs(double[] timeData, double[] pixelData, double[] bkGrdData, double omega) {
 

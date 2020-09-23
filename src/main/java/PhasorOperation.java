@@ -236,6 +236,37 @@ public class PhasorOperation {
     public double[][][] getRateData() {
     	return rateDataFromPhasor;
     }
+    
+    public boolean getPhasorFitDone() {
+    	return isPhasorFitDone;
+    }
+    
+    
+    ///get fitted data or raw for subsequent fitting
+    public double[][][] getChAdata(){
+    	return arrayChA;
+
+    }
+    
+    public double[][][] getChBdata(){
+    	return arrayChB;
+
+    }
+    
+    public double[][][] getChCdata(){
+    	return arrayChC;
+
+    }
+    
+    public double[][][] getChDdata(){
+    	return arrayChD;
+
+    }
+    
+    public double[][][] getChEdata(){
+    	return arrayChE;
+
+    }
 	public void RunPhasorPlotStack() throws Exception {
 		
 		IJ.resetMinAndMax(img);
@@ -1142,7 +1173,6 @@ public class PhasorOperation {
     public void selectFromPhasorPlot() {
     	
         
-    	IJ.log(phasorPlot.getTitle());
     	double[][] phasorPlotROI = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorPlot);
         
             //IJ.log("xPos="+phasorPlotROI[0]+"  yPos="+phasorPlotROI[1]+"   cWidth="+phasorPlotROI[2]+"   cHeight="+phasorPlotROI[3]);
@@ -1199,7 +1229,52 @@ public class PhasorOperation {
         }
         return false;
     }
-    
+
+    public void MakeSavePhasorParameterImage() {
+    	if (rateDataFromPhasor == null || GmData == null || GsData == null) {//Chi2G == null) {
+    		IJ.showMessage("Pixel Fitter", "Fit parameter data unavailable");
+    	} else {
+    		String id2 = id.substring(0, id.indexOf("."));
+    		File f1 = new File(id2 + "_RateConstantsImage.tif");
+    		File f2 = new File(id2 + "_GmDataImage.tif");
+    		File f3 = new File(id2 + "_GsDataImage.tif");
+    		//File f4 = new File(id2 + "_Chi2Image.tif.tif");
+    		if (f1.exists() || f2.exists() || f3.exists()){// || f4.exists()) {
+    			GenericDialog gdEx = new GenericDialog("Phasor Plotter");
+    			gdEx.addMessage("Analyzed results files present for this image\n " + id2);
+    			gdEx.addCheckbox("Overwrite?", false);
+    			gdEx.showDialog();
+    			if (gdEx.wasCanceled()) {
+    				return;
+    			}
+    			boolean overWrite = gdEx.getNextBoolean();
+    			if (overWrite) {
+    				ImagePlus imp = createImage("RateConstantsImage",rateDataFromPhasor);
+    				IJ.saveAs(imp, "Tiff", id2 + "_RateConstantsImage.tif");
+    				imp.close();
+    				imp = createImage("GmDataImage",GmData);
+    				IJ.saveAs(imp, "Tiff", id2 + "_GmDataImage.tif");
+    				imp.close();
+    				imp = createImage("GsDataImage",GsData);
+    				IJ.saveAs(imp, "Tiff", id2 + "_GsDataImage.tif");
+    				imp.close();
+
+    			}
+    		} else {
+    			ImagePlus imp = createImage("RateConstantsImage", rateDataFromPhasor);
+    			IJ.saveAs(imp, "Tiff", id2 + "_RateConstantsImage.tif");
+    			imp.close();
+    			imp = createImage("GmDataImage", GmData);
+    			IJ.saveAs(imp, "Tiff", id2 + "_GmDataImage.tif");
+    			imp.close();
+    			imp = createImage("GsDataImage", GsData);
+    			IJ.saveAs(imp, "Tiff", id2 + "_GsDataImage.tif");
+    			imp.close();
+
+    		}
+    	}
+    }
+
 
 
 
