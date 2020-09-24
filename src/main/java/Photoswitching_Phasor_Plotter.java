@@ -3087,7 +3087,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     private javax.swing.JButton readReferenceData;
     private javax.swing.JButton saveUnmixed;
     private javax.swing.JButton selectFromPhasorPlot;
-    private javax.swing.JTextArea statusMessageArea;
+    
+    public static javax.swing.JTextArea statusMessageArea;
+    
     private javax.swing.JLabel terminalThresholdLabel;
     private javax.swing.JFormattedTextField terminalThresholdTF;
     private javax.swing.JLabel thresholdLabel;

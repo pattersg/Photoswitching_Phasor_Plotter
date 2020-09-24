@@ -224,8 +224,8 @@ public class AzeroCurveFitter {
 	                                int progress = (int) Math.round(((double) (y - startY) / (endY - startY)) * 100);
 	                                
 	                                //should make this functional
-	                               // statusMessageArea.setText("Fitting pixels progress: " + progress + " %  of cycle " + (cycleNum + 1) + " of " + numCycles + " total cycles");                                
-	                               // statusMessageArea.update(statusMessageArea.getGraphics());
+	                                Photoswitching_Phasor_Plotter.statusMessageArea.setText("Fitting pixels progress: " + progress + " %  of cycle " + (cycleNum + 1) + " of " + numCycles + " total cycles");                                
+	                                Photoswitching_Phasor_Plotter.statusMessageArea.update(Photoswitching_Phasor_Plotter.statusMessageArea.getGraphics());
 	                            }
 	                            for (int x = 0; x < width; x++) {
 	                            	for (int z = 0; z < timeData.length; z++) {
@@ -304,8 +304,8 @@ public class AzeroCurveFitter {
 	            long timeToCompletion = System.currentTimeMillis() - startTime;    
 	            
 	            IJ.log("time taken to finish (in seconds) "+Double.toString(timeToCompletion/1000));
-	            //statusMessageArea.setText("Fitting time: " + timeToCompletion);                                
-	            //statusMessageArea.update(statusMessageArea.getGraphics());
+	            Photoswitching_Phasor_Plotter.statusMessageArea.setText("Fitting time: " + timeToCompletion);                                
+	            Photoswitching_Phasor_Plotter.statusMessageArea.update(Photoswitching_Phasor_Plotter.statusMessageArea.getGraphics());
 	            //if (LogFitTime == true) {
 	              //  IJ.log("Image " + id + " cycle " + cycle + " processing time = " + (timeToCompletion / 1000) + " sec");
 	            //}
@@ -707,8 +707,8 @@ public class AzeroCurveFitter {
 
 
 
-	    	  //	    	     statusMessageArea.setText("Unmixing time: " + timeToCompletion);               //TBD                 
-	    	  //	    	     statusMessageArea.update(statusMessageArea.getGraphics());
+	    	  //Photoswitching_Phasor_Plotter.statusMessageArea.setText("Unmixing time: " + timeToCompletion);               //TBD                 
+	    	  Photoswitching_Phasor_Plotter.statusMessageArea.update(Photoswitching_Phasor_Plotter.statusMessageArea.getGraphics());
 
 	    	  if(useChA)
 	    		  createUnmixedImage(chA_name, arrayChA);

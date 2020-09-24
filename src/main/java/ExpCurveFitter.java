@@ -369,8 +369,8 @@ public class ExpCurveFitter {
 								int startY = threadIndex * height / threads.length;
 								int endY = (threadIndex + 1) * height / threads.length;
 								int progress = (int) Math.round(((double) (y - startY) / (endY - startY)) * 100.0);
-								//statusMessageArea.setText("Fitting pixels progress: " + progress + " %  of cycle " + (cycleNum + 1) + " of " + numCycles + " total cycles");                                
-								//statusMessageArea.update(statusMessageArea.getGraphics());
+								Photoswitching_Phasor_Plotter.statusMessageArea.setText("Fitting pixels progress: " + progress + " %  of cycle " + (cycleNum + 1) + " of " + numCycles + " total cycles");                                
+								Photoswitching_Phasor_Plotter.statusMessageArea.update(Photoswitching_Phasor_Plotter.statusMessageArea.getGraphics());
 							}
 							for (int x = 0; x < width; x++) {
 								//the fits are performed line by line within each thread section
@@ -452,9 +452,6 @@ public class ExpCurveFitter {
 										a3DataG[x][y][cycleNum] = Double.NaN;
 										k3DataG[x][y][cycleNum] = Double.NaN;
 
-										//GmData[x][y][cycleNum] = Double.NaN;
-										//GsData[x][y][cycleNum] = Double.NaN;
-										//AZeroData[x][y][cycleNum] = Double.NaN;
 									}
 									if (fitDouble) {
 										Chi2G[x][y][cycleNum] = Double.NaN;
@@ -464,10 +461,6 @@ public class ExpCurveFitter {
 										a2DataG[x][y][cycleNum] = Double.NaN;
 										k2DataG[x][y][cycleNum] = Double.NaN;
 
-										//GmData[x][y][cycleNum] = Double.NaN;
-										//GsData[x][y][cycleNum] = Double.NaN;
-										//AZeroData[x][y][cycleNum] = Double.NaN;
-
 									}
 									if (fitSingle) {
 										Chi2G[x][y][cycleNum] = Double.NaN;
@@ -475,9 +468,6 @@ public class ExpCurveFitter {
 										a1DataG[x][y][cycleNum] = Double.NaN;
 										k1DataG[x][y][cycleNum] = Double.NaN;
 
-										//GmData[x][y][cycleNum] = Double.NaN;
-										//GsData[x][y][cycleNum] = Double.NaN;
-										//AZeroData[x][y][cycleNum] = Double.NaN;
 									}
 
 								} else {
@@ -497,9 +487,6 @@ public class ExpCurveFitter {
 
 											double totalA = fittedParam[2]+fittedParam[4]+fittedParam[6];
 
-											//GmData[x][y][cycleNum] = ((fittedParam[2]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3]))))) + ((fittedParam[4]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[5])*(1/fittedParam[5]))))) + ((fittedParam[6]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[7])*(1/fittedParam[7])))));
-											//GsData[x][y][cycleNum] = ((fittedParam[2]/totalA)*((Omega*1/fittedParam[3])/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3]))))) + ((fittedParam[4]/totalA)*((Omega*1/fittedParam[5])/(1+((Omega*Omega)*(1/fittedParam[5])*(1/fittedParam[5]))))) + ((fittedParam[6]/totalA)*((Omega*1/fittedParam[7])/(1+((Omega*Omega)*(1/fittedParam[7])*(1/fittedParam[7])))));
-											//AZeroData[x][y][cycleNum] = pixelsArrayOfArrays[threadIndex][0];
 
 										}
 										if (fitDouble) {
@@ -512,9 +499,6 @@ public class ExpCurveFitter {
 
 											double totalA = fittedParam[2]+fittedParam[4];
 
-											//GmData[x][y][cycleNum] = ((fittedParam[2]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3]))))) + ((fittedParam[4]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[5])*(1/fittedParam[5])))));
-											//GsData[x][y][cycleNum] = ((fittedParam[2]/totalA)*((Omega*1/fittedParam[3])/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3]))))) + ((fittedParam[4]/totalA)*((Omega*1/fittedParam[5])/(1+((Omega*Omega)*(1/fittedParam[5])*(1/fittedParam[5])))));
-											//AZeroData[x][y][cycleNum] = pixelsArrayOfArrays[threadIndex][0];
 
 										}
 										if (fitSingle) {
@@ -525,9 +509,6 @@ public class ExpCurveFitter {
 
 											double totalA = fittedParam[2];
 
-											//GmData[x][y][cycleNum] = ((fittedParam[2]/totalA)*(1/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3])))));
-											//GsData[x][y][cycleNum] = ((fittedParam[2]/totalA)*((Omega*1/fittedParam[3])/(1+((Omega*Omega)*(1/fittedParam[3])*(1/fittedParam[3])))));
-											//AZeroData[x][y][cycleNum] = pixelsArrayOfArrays[threadIndex][0];
 
 										}
 									} else {
@@ -542,9 +523,6 @@ public class ExpCurveFitter {
 											a3DataG[x][y][cycleNum] = Double.NaN;
 											k3DataG[x][y][cycleNum] = Double.NaN;
 
-											//GmData[x][y][cycleNum] = Double.NaN;
-											//GsData[x][y][cycleNum] = Double.NaN;
-											//AZeroData[x][y][cycleNum] = Double.NaN;
 										}
 										if (fitDouble) {
 											Chi2G[x][y][cycleNum] = Double.NaN;
@@ -554,9 +532,6 @@ public class ExpCurveFitter {
 											a2DataG[x][y][cycleNum] = Double.NaN;
 											k2DataG[x][y][cycleNum] = Double.NaN;
 
-											//GmData[x][y][cycleNum] = Double.NaN;
-											//GsData[x][y][cycleNum] = Double.NaN;
-											//AZeroData[x][y][cycleNum] = Double.NaN;
 										}
 										if (fitSingle) {
 											Chi2G[x][y][cycleNum] = Double.NaN;
@@ -564,9 +539,6 @@ public class ExpCurveFitter {
 											a1DataG[x][y][cycleNum] = Double.NaN;
 											k1DataG[x][y][cycleNum] = Double.NaN;
 
-											//GmData[x][y][cycleNum] = Double.NaN;
-											//GsData[x][y][cycleNum] = Double.NaN;
-											//AZeroData[x][y][cycleNum] = Double.NaN;
 										}
 									}
 								}
@@ -577,8 +549,8 @@ public class ExpCurveFitter {
 			}
 			startAndJoin(threads);
 			long timeToCompletion = System.currentTimeMillis() - startTime;    
-			//statusMessageArea.setText("Fitting time: " + timeToCompletion);                                
-			//statusMessageArea.update(statusMessageArea.getGraphics());
+			Photoswitching_Phasor_Plotter.statusMessageArea.setText("Fitting time: " + timeToCompletion);                                
+			Photoswitching_Phasor_Plotter.statusMessageArea.update(Photoswitching_Phasor_Plotter.statusMessageArea.getGraphics());
 			if (LogFitTime == true) {
 				//can be helpful if running multiple cycles
 				IJ.log("Image " + id + " cycle " + cycle + " processing time = " + (timeToCompletion / 1000) + " sec");

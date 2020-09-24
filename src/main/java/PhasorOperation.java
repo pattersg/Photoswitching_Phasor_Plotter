@@ -347,9 +347,9 @@ public class PhasorOperation {
 								int startY = threadIndex * height / threads.length;
 								int endY = (threadIndex + 1) * height / threads.length;
 								int progress = (int) Math.round(((double) (y - startY) / (double)(endY - startY)) * 100.0);
-								//statusMessageArea.setText("Phasor progress: " + progress + " %  of cycle " + (cycleNum + 1) + " of " + numCycles + " total cycles");                                
-								// statusMessageArea.update(statusMessageArea.getGraphics());
-								//IJ.showStatus("Phasor progress: " + progress + " %  of cycle " + (cycleNum + 1) + " of " + numCycles + " total cycles");
+								Photoswitching_Phasor_Plotter.statusMessageArea.setText("Phasor progress: " + progress + " %  of cycle " + (cycleNum + 1) + " of " + numCycles + " total cycles");                                
+								Photoswitching_Phasor_Plotter.statusMessageArea.update(Photoswitching_Phasor_Plotter.statusMessageArea.getGraphics());
+								IJ.showStatus("Phasor progress: " + progress + " %  of cycle " + (cycleNum + 1) + " of " + numCycles + " total cycles");
 							}
 							for (int x = 0; x < width; x++) {
 								for (int z = 0; z < timeData.length; z++) {
@@ -425,8 +425,8 @@ public class PhasorOperation {
 			}
 			startAndJoin(threads);
 			long timeToCompletion = System.currentTimeMillis() - startTime;    
-			//statusMessageArea.setText("Phasor time: " + timeToCompletion);                                
-			//statusMessageArea.update(statusMessageArea.getGraphics());
+			Photoswitching_Phasor_Plotter.statusMessageArea.setText("Phasor time: " + timeToCompletion);                                
+			Photoswitching_Phasor_Plotter.statusMessageArea.update(Photoswitching_Phasor_Plotter.statusMessageArea.getGraphics());
 			//if (LogPhasorTime == true) {
 			IJ.log("Image " + id + " cycle " + cycle + " processing time = " + (timeToCompletion / 1000) + " sec");
 			//}
@@ -529,8 +529,8 @@ public class PhasorOperation {
     							int startY = threadIndex * height / threads.length;
     							int endY = (threadIndex + 1) * height / threads.length;
     							int progress = (int) Math.round(((double) (y - startY) / (double)(endY - startY)) * 100.0);
-    							//statusMessageArea.setText("Unmixing progress: " + progress + " %  of cycle " + (cycleNum + 1) + " of " + numCycles + " total cycles");                                
-    							//statusMessageArea.update(statusMessageArea.getGraphics());
+    							Photoswitching_Phasor_Plotter.statusMessageArea.setText("Unmixing progress: " + progress + " %  of cycle " + (cycleNum + 1) + " of " + numCycles + " total cycles");                                
+    							Photoswitching_Phasor_Plotter.statusMessageArea.update(Photoswitching_Phasor_Plotter.statusMessageArea.getGraphics());
     						}
     						for (int x = 0; x < width; x++) {
     							if (Double.isNaN(GmData[x][y][cycleNum]) || Double.isNaN(GsData[x][y][cycleNum])) {
@@ -577,9 +577,8 @@ public class PhasorOperation {
     	}//cyc
     	isPhasorFitDone=true;// for hybrid fitting this needs to be true; 
     	long timeToCompletion = System.currentTimeMillis() - startTime;    
-    	//statusMessageArea.setText("Unmixing time: " + timeToCompletion);                                
-    	//statusMessageArea.update(statusMessageArea.getGraphics());
-    	//ßIJ.log("reached here "+Boolean.toString(useChA)+Boolean.toString(useChB)+Boolean.toString(useChC)+Boolean.toString(useChD)+Boolean.toString(useChE));
+    	Photoswitching_Phasor_Plotter.statusMessageArea.setText("Unmixing time: " + timeToCompletion);                                
+    	Photoswitching_Phasor_Plotter.statusMessageArea.update(Photoswitching_Phasor_Plotter.statusMessageArea.getGraphics());
     	if(useChA)
     		createUnmixedImage(chA_name, arrayChA);
     	if(useChB)
