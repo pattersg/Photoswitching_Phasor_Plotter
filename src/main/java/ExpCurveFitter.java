@@ -741,6 +741,16 @@ public class ExpCurveFitter {
         return tauToReturn;
     }
     
+    
+    /*
+    @Override
+    public double userFunction(double[] par, double x) {
+        if (fitDouble) {
+            return par[0] * Math.exp(-par[1] * x) + par[2] * Math.exp(-par[3] * x) + par[4];
+        }
+        return par[0] * Math.exp(-par[1] * x) + par[2];
+    }
+    */
     private double[] fitExponentialFunction(double[] x, double[] y, double[] paramsPassed, int maxIter) {
         double[] params = new double[0];
         if (fitTriple) {

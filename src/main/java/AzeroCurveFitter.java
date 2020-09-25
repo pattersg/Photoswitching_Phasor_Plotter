@@ -65,7 +65,7 @@ public class AzeroCurveFitter {
     double[][][] k4DataG;
     double[][][] a5DataG;
     double[][][] k5DataG;
-    
+    int binFactorImage;
     //temp values OPT
     boolean usePhasortoInitialize; 
     boolean isPhasorFitDone;
@@ -91,6 +91,7 @@ public class AzeroCurveFitter {
     int cameraOffset;
     int binFactor;
     int maxiteration;
+    double cameraGain;
     
     boolean useChA;
     boolean useChB;
@@ -491,6 +492,13 @@ public class AzeroCurveFitter {
 	    	this.binFactor=binFactor;
 	    }
 	    
+	    public void setbinFactorImage(int binFactorImage) {
+	    	this.binFactorImage=binFactorImage;
+	    }
+	    
+	    public void setCameraGain(double cameraGain) {
+	    	this.cameraGain=cameraGain;
+	    }
 	  //*******************Utilities*******************************
 	    
 	    //makestatic
@@ -745,6 +753,9 @@ public class AzeroCurveFitter {
 	          imp.show();
 	          return imp;
 	      }    
+	      
+
+
 
 
 
