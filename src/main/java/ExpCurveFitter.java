@@ -135,6 +135,7 @@ public class ExpCurveFitter {
     boolean fitSingle;
     boolean fitDouble;
     boolean fitTriple;
+    boolean useFitToinit=true;
 
     double cameraGain;
     double lambda;
@@ -312,6 +313,16 @@ public class ExpCurveFitter {
 		k2DataG = new double[imageW][imageH][numCycles];
 		a3DataG = new double[imageW][imageH][numCycles];
 		k3DataG = new double[imageW][imageH][numCycles];
+		
+		
+		Chi2G_t = new double[imageW][imageH][numCycles];
+		offsetDataG_t = new double[imageW][imageH][numCycles];
+		a1DataG_t = new double[imageW][imageH][numCycles];
+		k1DataG_t = new double[imageW][imageH][numCycles];
+		a2DataG_t = new double[imageW][imageH][numCycles];
+		k2DataG_t = new double[imageW][imageH][numCycles];
+		a3DataG_t = new double[imageW][imageH][numCycles];
+		k3DataG_t = new double[imageW][imageH][numCycles];
 		//3D arrays are initialized for the fit parameters        
 
 		if(!fitSingle && !fitDouble && !fitTriple){
@@ -331,6 +342,8 @@ public class ExpCurveFitter {
 		}
 
 		for (int cycle = 0; cycle < numCycles; cycle++) {
+			
+			
 			final long startTime = System.currentTimeMillis();
 			double[] timeData2 = new double[imagesPerCycle];
 			for (int k = 0; k < imagesPerCycle; k++) {
@@ -343,9 +356,9 @@ public class ExpCurveFitter {
 			final double[][] timeDataArrayOfArrays = new double[threads.length][timeData.length];
 			final double[][] pixelsArrayOfArrays = new double[threads.length][timeData.length];
 			//two 2D arrays are initialized to handle the timedata and the pixel (fluorescence data) during the fitting
-
-			IJ.log("this is thread size");
-			IJ.log(Integer.toString(threads.length));
+//
+//			IJ.log("this is thread size");
+//			IJ.log(Integer.toString(threads.length));
 
 			for (int ithread = 0; ithread < threads.length; ithread++) {
 				final int threadIndex = ithread;
@@ -393,52 +406,10 @@ public class ExpCurveFitter {
 								//to provide an initial guess for the fitting
 								double tau = findTauEstimate(timeDataArrayOfArrays[threadIndex], pixelsArrayOfArrays[threadIndex], firstframeint, lastframeint);
 								//to provide an initial estimate of the rate constant
-								double guess_o = 0;
-								double guess_a1 = 0;
-								double guess_k1 = 0;
-								double guess_a2 = 0;
-								double guess_k2 = 0;
-								double guess_a3 = 0;
-								double guess_k3 = 0;
+								
 
-								if (fitTriple) {
-									guess_o = lastframeint;
-									guess_a1 = (firstframeint - lastframeint) / 3;
-									guess_k1 = 1 / tau;
-									guess_a2 = (firstframeint - lastframeint) / 3;
-									guess_k2 = 1 / tau;
-									guess_a3 = (firstframeint - lastframeint) / 3;
-									guess_k3 = 1 / tau;
-
-								}
-								if (fitDouble) {
-									guess_o = lastframeint;
-									guess_a1 = (firstframeint - lastframeint) / 2;
-									guess_k1 = 1 / tau;
-									guess_a2 = (firstframeint - lastframeint) / 2;
-									guess_k2 = 1 / tau;
-									guess_a3 = 0;
-									guess_k3 = 0;
-								}
-								if (fitSingle) {
-									guess_o = lastframeint;
-									guess_a1 = firstframeint - lastframeint;
-									guess_k1 = 1 / tau;
-									guess_a2 = 0;
-									guess_k2 = 0;
-									guess_a3 = 0;
-									guess_k3 = 0;
-								}
-
-								double[] fitparam = {
-										0,
-										guess_o,
-										guess_a1,
-										guess_k1,
-										guess_a2,
-										guess_k2,
-										guess_a3,
-										guess_k3};
+	
+								double []fitparam=initExpFittingComponents(firstframeint, lastframeint, tau, cycleNum,x,y);
 
 								if (firstframeint - lastframeint < PixelThresholdCutOff) {
 									//fill arrays with NaN if the threshold is not met
@@ -484,8 +455,17 @@ public class ExpCurveFitter {
 											k2DataG[x][y][cycleNum] = (float) fittedParam[5];
 											a3DataG[x][y][cycleNum] = (float) fittedParam[6];
 											k3DataG[x][y][cycleNum] = (float) fittedParam[7];
+											
+											//assignment for next level
+											Chi2G_t[x][y][cycleNum] =Chi2G[x][y][cycleNum] ;
+											offsetDataG_t[x][y][cycleNum] =offsetDataG[x][y][cycleNum] ;
+											a1DataG_t[x][y][cycleNum] =a1DataG[x][y][cycleNum];
+											k1DataG_t[x][y][cycleNum] =k1DataG[x][y][cycleNum] ;
+											a2DataG_t[x][y][cycleNum] =a2DataG[x][y][cycleNum] ;
+											k2DataG_t[x][y][cycleNum] =k2DataG[x][y][cycleNum] ;
+											a3DataG_t[x][y][cycleNum] =a3DataG[x][y][cycleNum] ;
+											k3DataG_t[x][y][cycleNum] =k3DataG[x][y][cycleNum] ;
 
-											double totalA = fittedParam[2]+fittedParam[4]+fittedParam[6];
 
 
 										}
@@ -497,7 +477,13 @@ public class ExpCurveFitter {
 											a2DataG[x][y][cycleNum] = (float) fittedParam[4];
 											k2DataG[x][y][cycleNum] = (float) fittedParam[5];
 
-											double totalA = fittedParam[2]+fittedParam[4];
+											//assignment for next level
+											Chi2G_t[x][y][cycleNum] =Chi2G[x][y][cycleNum] ;
+											offsetDataG_t[x][y][cycleNum] =offsetDataG[x][y][cycleNum] ;
+											a1DataG_t[x][y][cycleNum] =a1DataG[x][y][cycleNum];
+											k1DataG_t[x][y][cycleNum] =k1DataG[x][y][cycleNum] ;
+											a2DataG_t[x][y][cycleNum] =a2DataG[x][y][cycleNum] ;
+											k2DataG_t[x][y][cycleNum] =k2DataG[x][y][cycleNum] ;
 
 
 										}
@@ -506,8 +492,15 @@ public class ExpCurveFitter {
 											offsetDataG[x][y][cycleNum] = (float) fittedParam[1];
 											a1DataG[x][y][cycleNum] = (float) fittedParam[2];
 											k1DataG[x][y][cycleNum] = (float) fittedParam[3];
+											
+											//assignment for next level
+											
+											Chi2G_t[x][y][cycleNum] =Chi2G[x][y][cycleNum] ;
+											offsetDataG_t[x][y][cycleNum] =offsetDataG[x][y][cycleNum] ;
+											a1DataG_t[x][y][cycleNum] =a1DataG[x][y][cycleNum];
+											k1DataG_t[x][y][cycleNum] =k1DataG[x][y][cycleNum] ;
 
-											double totalA = fittedParam[2];
+										
 
 
 										}
@@ -549,6 +542,7 @@ public class ExpCurveFitter {
 			}
 			startAndJoin(threads);
 			long timeToCompletion = System.currentTimeMillis() - startTime;    
+			IJ.log("time taken to finish cycle "+ Integer.toString(cycle)+"(in seconds) "+Double.toString(timeToCompletion/1000));
 			Photoswitching_Phasor_Plotter.statusMessageArea.setText("Fitting time: " + timeToCompletion);                                
 			Photoswitching_Phasor_Plotter.statusMessageArea.update(Photoswitching_Phasor_Plotter.statusMessageArea.getGraphics());
 			if (LogFitTime == true) {
@@ -561,6 +555,104 @@ public class ExpCurveFitter {
 	
 	
 	  //*******************Utilities*******************************
+	
+	
+	private double[] initExpFittingComponents(double firstframeint, double lastframeint, double tau, int cycleNum,int x,int y) {
+		
+		double guess_o = 0;
+		double guess_a1 = 0;
+		double guess_k1 = 0;
+		double guess_a2 = 0;
+		double guess_k2 = 0;
+		double guess_a3 = 0;
+		double guess_k3 = 0;
+
+		//initialization
+		
+
+
+
+
+		if(cycleNum>0) {
+			if(useFitToinit) {
+				if (fitTriple) {
+					guess_o = offsetDataG_t[x][y][cycleNum-1];
+					guess_a1 = a1DataG_t[x][y][cycleNum-1];
+					guess_k1 = k1DataG_t[x][y][cycleNum-1];
+					guess_a2 = a2DataG_t[x][y][cycleNum-1];
+					guess_k2 = k2DataG_t[x][y][cycleNum-1];
+					guess_a3 = a3DataG_t[x][y][cycleNum-1];
+					guess_k3 = k3DataG_t[x][y][cycleNum-1];
+					
+
+				}
+				if (fitDouble) {
+
+					guess_o = offsetDataG_t[x][y][cycleNum-1];
+					guess_a1 = a1DataG_t[x][y][cycleNum-1];
+					guess_k1 = k1DataG_t[x][y][cycleNum-1];
+					guess_a2 = a2DataG_t[x][y][cycleNum-1];
+					guess_k2 = k2DataG_t[x][y][cycleNum-1];
+					guess_a3 = 0;
+					guess_k3 = 0;
+				}
+				if (fitSingle) {
+					guess_o = offsetDataG_t[x][y][cycleNum-1];
+					guess_a1 = a1DataG_t[x][y][cycleNum-1];
+					guess_k1 = k1DataG_t[x][y][cycleNum-1];
+					guess_a2 = 0;
+					guess_k2 = 0;
+					guess_a3 = 0;
+					guess_k3 = 0;
+				}
+			}
+
+		}
+		else {
+			if (fitTriple) {
+				guess_o = lastframeint;
+				guess_a1 = (firstframeint - lastframeint) / 3;
+				guess_k1 = 1 / tau;
+				guess_a2 = (firstframeint - lastframeint) / 3;
+				guess_k2 = 1 / tau;
+				guess_a3 = (firstframeint - lastframeint) / 3;
+				guess_k3 = 1 / tau;
+
+			}
+			if (fitDouble) {
+				guess_o = lastframeint;
+				guess_a1 = (firstframeint - lastframeint) / 2;
+				guess_k1 = 1 / tau;
+				guess_a2 = (firstframeint - lastframeint) / 2;
+				guess_k2 = 1 / tau;
+				guess_a3 = 0;
+				guess_k3 = 0;
+			}
+			if (fitSingle) {
+				guess_o = lastframeint;
+				guess_a1 = firstframeint - lastframeint;
+				guess_k1 = 1 / tau;
+				guess_a2 = 0;
+				guess_k2 = 0;
+				guess_a3 = 0;
+				guess_k3 = 0;
+			}
+		}
+
+		double[] fitparam = {
+				0,
+				guess_o,
+				guess_a1,
+				guess_k1,
+				guess_a2,
+				guess_k2,
+				guess_a3,
+				guess_k3
+		};
+
+		return fitparam;
+
+	}
 
     private double[] getTimingPerPlane(String arg, int tPoints, int currZ, int currCh) throws Exception {
     	//this uses Bioformats to get the timing of the images
