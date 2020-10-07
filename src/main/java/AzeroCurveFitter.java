@@ -246,7 +246,7 @@ public class AzeroCurveFitter {
 	                            	double[] fitparam=initAzeorExponentialFit(x,y,cycleNum);                            	
 
 
-	                            	if (firstframeint - lastframeint < PixelThresholdCutOff) {
+	                            	if ((firstframeint - lastframeint) < PixelThresholdCutOff) {
 	                            		Chi2G[x][y][cycleNum] = Double.NaN;
 	                            		offsetDataG[x][y][cycleNum] = Double.NaN;
 	                            		a1DataG[x][y][cycleNum] = Double.NaN;
@@ -616,11 +616,20 @@ public class AzeroCurveFitter {
 	         
 	          //double[] paramVariations = multiplyArrayByValue(params, varParam); //OPT
 	          // x, y length 300
+	          
+	          //For good performance, it is advisable to set also the typical variation range of the initial parameters by the getMinimizer().setInitialParamVariations(double[]) method (especially if one or more of the initialParams are zero). 
 	          CurveFitter cf = new CurveFitter(x, y);
+	          CurveFitter cf1= new CurveFitter(x, y);
 	          cf.setOffsetMultiplySlopeParams(-1, -1, -1);
 	          cf.setMaxIterations(maxIter);      
 	       //	should set the initial pa
 	         // cf.setRestarts(4);
+	          
+	          double []initVar= new double [params.length];
+	          for (int h=0;h<params.length;h++) {//making init params
+	        	  initVar[h]=0.3*params[h];
+	        	  
+	          }
 	          cf.doCustomFit(new UserFunction() {
 	              @Override
 	              public double userFunction(double[] par, double x) {
@@ -643,13 +652,18 @@ public class AzeroCurveFitter {
 	                      return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x));
 	                  }
 	              }
-	          }, params.length, "", params, null, false);             
+	          }, params.length, "", params, initVar, false);      
+	          
+	          //params.length, "", params, null, false);      
 	          double[] paramToReturn = cf.getParams();
 	          double Chi2ToReturn = Photoswitching_Phasor_Plotter.calculateReducedChi2(cf.getResiduals(), y);
 	          double[] returnArray = new double[paramsPassed.length];
 	          Arrays.fill(returnArray, 0);
 	          returnArray[0] = Chi2ToReturn;
 	          returnArray[1] = paramToReturn[0];
+	          IJ.log(Integer.toString(cf.getIterations()));
+	          
+	          
 	          
 	          //IJ.log("chi2 calculated "+Double.toString(Chi2ToReturn)+" param 0 = "+Double.toString(paramToReturn[0]));
 	          if (useChA) {
