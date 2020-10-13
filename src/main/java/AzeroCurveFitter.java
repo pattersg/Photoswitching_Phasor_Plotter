@@ -126,7 +126,7 @@ public class AzeroCurveFitter {
     String chD_name;
     String chE_name;
     
-    
+    double varParam;
     
     
 	
@@ -267,7 +267,8 @@ public class AzeroCurveFitter {
 	                            			a3DataG[x][y][cycleNum] = (float) fittedParam[4];
 	                            			a4DataG[x][y][cycleNum] = (float) fittedParam[5];
 	                            			a5DataG[x][y][cycleNum] = (float) fittedParam[6];
-	                            			
+											
+											
 	                            			if(cycleNum<(numCycles-1)) {//OPT copy fitted param for initialization for next cycle //newcode
 	                            				offsetDataG_t[x][y][cycleNum] = (float) fittedParam[1];
 	                                			a1DataG_t[x][y][cycleNum] = (float) fittedParam[2];
@@ -402,7 +403,11 @@ public class AzeroCurveFitter {
 	        return new Thread[n_cpus];
 	    }
 	    
-	    //Set useChannel values
+		//Set useChannel values
+		
+		public void setVarParam(double varParam) {
+			this.varParam=varParam;
+	   }
 
 	    public void setUseChannelValues(boolean chA,boolean chB,boolean chC,boolean chD,boolean chE ) {
 	    	this.useChA=chA;
@@ -425,7 +430,8 @@ public class AzeroCurveFitter {
 	    	this.chD_Kmean=chD;
 	    	this.chE_Kmean=chE;
 	    	
-	    }
+		}
+		
 	    
 	    public void initCycleNums(int numcycles, int imagecycles) {
 	    	this.numCycles=numcycles;
@@ -614,22 +620,19 @@ public class AzeroCurveFitter {
 	              params[1] = Math.sqrt(params[1]);//converting to the square root and then including the squares in the equation forces these to be positive
 	          }
 	         
-	          //double[] paramVariations = multiplyArrayByValue(params, varParam); //OPT
+	          double[] paramVariations = UtilityFunction.multiplyArrayByValue(params, varParam); //OPT// use this for variation in the init function
 	          // x, y length 300
 	          
 	          //For good performance, it is advisable to set also the typical variation range of the initial parameters by the getMinimizer().setInitialParamVariations(double[]) method (especially if one or more of the initialParams are zero). 
 	          CurveFitter cf = new CurveFitter(x, y);
 	          CurveFitter cf1= new CurveFitter(x, y);
 	          cf.setOffsetMultiplySlopeParams(-1, -1, -1);
-	          cf.setMaxIterations(maxIter);      
+			  cf.setMaxIterations(maxIter);      
+			  
 	       //	should set the initial pa
 	         // cf.setRestarts(4);
 	          
-	          double []initVar= new double [params.length];
-	          for (int h=0;h<params.length;h++) {//making init params
-	        	  initVar[h]=0.3*params[h];
-	        	  
-	          }
+
 	          cf.doCustomFit(new UserFunction() {
 	              @Override
 	              public double userFunction(double[] par, double x) {
@@ -652,7 +655,7 @@ public class AzeroCurveFitter {
 	                      return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x));
 	                  }
 	              }
-	          }, params.length, "", params, initVar, false);      
+	          }, params.length, "", params, paramVariations, false);      
 	          
 	          //params.length, "", params, null, false);      
 	          double[] paramToReturn = cf.getParams();

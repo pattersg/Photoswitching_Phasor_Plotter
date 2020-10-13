@@ -3587,7 +3587,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     	cfAzeroInst.setBinFactor(binFactor);
     	cfAzeroInst.setbinFactorImage(binFactorImage);
     	cfAzeroInst.setCameraGain(cameraGain);
-
+        cfAzeroInst.setVarParam(varParam);
     	//copies phasor data from the phasor fitting to zero fitter
     	if(phasorFitter.isPhasorFitDone) {
     		//cfAzeroInst.copyPhasorData(arrayChA, arrayChB, arrayChC, arrayChD, arrayChE);//copies phasor data from the phasor fitting to zero fitter
