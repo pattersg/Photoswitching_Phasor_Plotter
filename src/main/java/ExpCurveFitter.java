@@ -943,6 +943,7 @@ public class ExpCurveFitter {
 	public ImagePlus createWeightedRateConstantsImage() {
 		// plots a weighted rate constant image
 		ImagePlus imp = IJ.createImage("WeightedRateConstantsImage", "32-bit", imageW, imageH, numCycles);
+		float fMax=8;
 		for (int cyc = 0; cyc < numCycles; cyc++) {
 			imp.setSlice(cyc + 1);
 			ImageProcessor ip = imp.getProcessor();
@@ -952,23 +953,34 @@ public class ExpCurveFitter {
 					if (Double.isNaN(k1DataG[x][y][cyc])) {
 						fip.setf(x, y, Float.NaN);
 					} else {
-						if (fitTriple)
-							fip.setf(x, y,
-									(float) (((a1DataG[x][y][cyc] * k1DataG[x][y][cyc])
-											+ (a2DataG[x][y][cyc] * k2DataG[x][y][cyc])
-											+ (a3DataG[x][y][cyc] * k3DataG[x][y][cyc]))
-											/ (a1DataG[x][y][cyc] + a2DataG[x][y][cyc] + a3DataG[x][y][cyc])));
-						if (fitDouble)
-							fip.setf(x, y,
-									(float) (((a1DataG[x][y][cyc] * k1DataG[x][y][cyc])
-											+ (a2DataG[x][y][cyc] * k2DataG[x][y][cyc]))
-											/ (a1DataG[x][y][cyc] + a2DataG[x][y][cyc])));
+						if (fitTriple){
+							float f=(float) (((a1DataG[x][y][cyc] * k1DataG[x][y][cyc])
+							+ (a2DataG[x][y][cyc] * k2DataG[x][y][cyc])
+							+ (a3DataG[x][y][cyc] * k3DataG[x][y][cyc]))
+							/ (a1DataG[x][y][cyc] + a2DataG[x][y][cyc] + a3DataG[x][y][cyc]));
+
+
+							fip.setf(x, y,((f>fMax)?0:f));
+						}
+						if (fitDouble){
+
+							float f=(float)(((a1DataG[x][y][cyc] * k1DataG[x][y][cyc])
+							+ (a2DataG[x][y][cyc] * k2DataG[x][y][cyc]))
+							/ (a1DataG[x][y][cyc] + a2DataG[x][y][cyc]));
+							//fip.setf(x, y,f);
+							fip.setf(x, y,((f>fMax)?0:f));
+									 
+						}
 						if (fitSingle)
 							fip.setf(x, y, (float) (k1DataG[x][y][cyc]));
 					}
 				}
 			}
+			//fip.max(10);
+			fip.min(0);
 			IJ.resetMinAndMax(imp);
+
+			
 		}
 		imp.show();
 		return imp;
@@ -1038,13 +1050,14 @@ public class ExpCurveFitter {
 			FloatProcessor fip = (FloatProcessor) ip.convertToFloat();
 			for (int y = 0; y < imageH; y++) {
 				for (int x = 0; x < imageW; x++) {
-					if (Double.isNaN(theArray[x][y][cyc])) {
+					if ((Double.isNaN(theArray[x][y][cyc]))) {
 						fip.setf(x, y, Float.NaN);
 					} else {
 						fip.setf(x, y, (float) theArray[x][y][cyc]);
 					}
 				}
 			}
+
 			IJ.resetMinAndMax(imp);
 		}
 
