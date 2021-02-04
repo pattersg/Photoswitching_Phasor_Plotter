@@ -358,9 +358,43 @@ public class PhasorOperation {
 										backGroundArrayOfArrays[threadIndex][z] = bkGrd[z];
 									if (img.isHyperStack()) {
 										int z2 = img.getStackIndex(img.getC(), img.getZ(), (cycleNum * imagesPerCycle) + z + 1) - 1;
-										pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, z2) - (cameraOffset*binFactor*binFactor);
+										//pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, z2) - (cameraOffset*binFactor*binFactor); oldcode
+										
+										//binning introduced
+										int bin=3;
+										
+										if((x>(width-bin)|(y>(height-bin)))) continue; //avoiding corner pixels
+										int sizeOfVoxels=bin*bin;// array to allocate for getting voxels
+										float []voxels = new float [sizeOfVoxels];
+										double pixelValue=0;
+										try {
+											img2.getVoxels(x, y, z2, bin, bin, 1, voxels);//crashes for x or y=511
+										}catch (IndexOutOfBoundsException e) {
+											IJ.log(Integer.toString(x)+"x, y="+Integer.toString(y));
+										}
+										//IJ.log(Integer.toString(voxels.length));
+
+										for (int iVoxel=0;iVoxel<voxels.length;iVoxel++) {
+											pixelValue+=voxels[iVoxel];
+										}
+
+										pixelsArrayOfArrays[threadIndex][z] = pixelValue/voxels.length - (cameraOffset*binFactor*binFactor);
+										
+
+										
 									} else {
 										pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, (cycleNum * imagesPerCycle) + z) - (cameraOffset*binFactor*binFactor);
+										
+										//binning
+//										float []voxels = new float [1];
+//										double pixelValue=0;
+//										img2.getVoxels(x, y, (cycleNum * imagesPerCycle) + z, 0, 0, 0, voxels);
+//										for (int iVoxel=0;iVoxel<voxels.length;iVoxel++) {
+//											pixelValue+=voxels[iVoxel];
+//										}
+//										
+//										pixelsArrayOfArrays[threadIndex][z] = pixelValue - (cameraOffset*binFactor*binFactor);
+										
 									}
 								}
 								if(pixelsArrayOfArrays[threadIndex][0]>=threshold){

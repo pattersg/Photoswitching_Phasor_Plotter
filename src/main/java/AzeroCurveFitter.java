@@ -126,7 +126,10 @@ public class AzeroCurveFitter {
     String chD_name;
     String chE_name;
     
-    double varParam;
+	double varParam;
+	double iterCount=0;
+	double cycleCountForavgIter=0;
+
     
     
 	
@@ -166,7 +169,8 @@ public class AzeroCurveFitter {
 	            timeData3 = getTimingPerPlane(id, size, currentZ, currentchannel);
 	        } catch (Exception e) {
 	            e.printStackTrace();
-	        }
+			}
+
 	        Chi2G = new double[imageW][imageH][numCycles];
 	        offsetDataG = new double[imageW][imageH][numCycles];
 	        a1DataG = new double[imageW][imageH][numCycles];
@@ -196,7 +200,10 @@ public class AzeroCurveFitter {
 	            
 	            double[] timeData2 = new double[imagesPerCycle];
 	            for (int k = 0; k < imagesPerCycle; k++) {
-	                timeData2[k] = (timeData3[k + (cycle * imagesPerCycle)] - timeData3[cycle * imagesPerCycle]);
+
+
+						timeData2[k] = (timeData3[k + (cycle * imagesPerCycle)] - timeData3[cycle * imagesPerCycle]);
+					
 	            }
 	            timeData = timeData2;
 
@@ -232,8 +239,14 @@ public class AzeroCurveFitter {
 	                            	for (int z = 0; z < timeData.length; z++) {
 	                            		timeDataArrayOfArrays[threadIndex][z] = timeData[z];
 	                            		if (img.isHyperStack()) {
-	                            			int z2 = img.getStackIndex(img.getC(), img.getZ(), (cycleNum * imagesPerCycle) + z + 1) - 1;
-	                            			pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, z2);
+											int z2;
+
+												z2 = img.getStackIndex(img.getC(), img.getZ(), (cycleNum * imagesPerCycle) + z + 1) - 1;
+
+											//newcode
+											//double sum=img2.getVoxel(x, y, z2); //original code;
+											pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, z2);	
+											 
 	                            		} else {
 	                            			pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, (cycleNum * imagesPerCycle) + z);
 	                            		}
@@ -257,6 +270,9 @@ public class AzeroCurveFitter {
 
 	                            	} else {
 
+										// if (cycleNum>0){
+										// 	maxiteration=maxiteration/2;
+										// }
 	                            		double[] fittedParam = fitAzeroExponentialFunction(timeDataArrayOfArrays[threadIndex], pixelsArrayOfArrays[threadIndex], fitparam, maxiteration);
 	                            		double Chi2 = fittedParam[0];
 
@@ -311,7 +327,14 @@ public class AzeroCurveFitter {
 	            //if (LogFitTime == true) {
 	              //  IJ.log("Image " + id + " cycle " + cycle + " processing time = " + (timeToCompletion / 1000) + " sec");
 	            //}
-	            
+				
+				
+				double averageCycleCount=iterCount/cycleCountForavgIter;
+				iterCount=0;
+				cycleCountForavgIter=0;
+
+
+				IJ.log("Average fitting cycle count for this round "+Double.toString(averageCycleCount));
 	            IJ.log("Image " + id + " cycle " + cycle + " processing time = " + (timeToCompletion / 1000) + " sec");
 	            IJ.log("fitting function over psFRET_Fit_Azero_Exponential");
 	            //printSystemTime();
@@ -320,7 +343,20 @@ public class AzeroCurveFitter {
 
 	    }
 	 
-	    
+		
+		double GetBinnedVoxel(ImageStack img2 , int x, int y, int height, int width, int z, int nSlices){
+			// binning functionality (spatial)
+			double sum=0;
+			if (x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < nSlices) {
+				sum = img2.getVoxel(x , y , z);
+
+			}
+
+			return sum; 
+
+
+
+		}
 	    private double[] initAzeorExponentialFit(int x, int y, int cycleNum) {
 	    	
 	    	
@@ -419,7 +455,9 @@ public class AzeroCurveFitter {
 	    }
 	    
 	    public void setImagePlus(ImagePlus im) {
-	    	this.img=im;
+			this.img=im;
+			
+
 	    }
 	    
 	    
@@ -518,7 +556,7 @@ public class AzeroCurveFitter {
 	    		fExt = fExt.substring(0, fExt.indexOf(" "));
 	    	}
 	    	String id2 = arg.substring(0, arg.indexOf(".")) + fExt;
-	    	double[] timeStampsToReturn = new double[tPoints];
+	    	double[] timeStampsToReturn = new double[tPoints];//901
 	    	IFormatReader reader = null;
 	    	int series = 0;
 	    	try {
@@ -537,7 +575,9 @@ public class AzeroCurveFitter {
 	    			reader.setSeries(series);
 	    		}
 	    		series = reader.getSeries();
-	    		int planeCount = meta.getPlaneCount(series);
+				int planeCount = meta.getPlaneCount(series);
+							
+				IJ.log(Integer.toString(planeCount));
 	    		int tCounter = 0;
 	    		for (int i = 0; i < planeCount; i++) {
 	    			Time deltaT = meta.getPlaneDeltaT(series, i);
@@ -664,7 +704,11 @@ public class AzeroCurveFitter {
 	          Arrays.fill(returnArray, 0);
 	          returnArray[0] = Chi2ToReturn;
 	          returnArray[1] = paramToReturn[0];
-	          IJ.log(Integer.toString(cf.getIterations()));
+			  //IJ.log(Integer.toString(cf.getIterations()));// this prints the number of iteration actually used
+			  
+			  iterCount+=cf.getIterations();
+			  cycleCountForavgIter++;
+
 	          
 	          
 	          
@@ -766,10 +810,13 @@ public class AzeroCurveFitter {
 	              }
 	              IJ.resetMinAndMax(imp);
 	          }
-	          
+			  
+			  
 	          imp.show();
 	          return imp;
-	      }    
+		  }    
+		  
+		
 	      
 
 

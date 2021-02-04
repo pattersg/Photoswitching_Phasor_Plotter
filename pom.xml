@@ -116,8 +116,8 @@
                         <version>1.2.1</version>
 		</dependency>
 	</dependencies>
-        
-        
+     
+
         <repositories>
             <repository>
                 <id>imagej.public</id>

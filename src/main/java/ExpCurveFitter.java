@@ -844,6 +844,8 @@ public class ExpCurveFitter {
 			returnArray[2] = fittedParam[0];
 			returnArray[3] = fittedParam[1];
 		}
+
+		IJ.log(Integer.toString(cf.getIterations()));// this prints the number of iteration actually used
 		return returnArray;
 	}
 
