@@ -50,6 +50,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     double PixelThresholdCutOff;
     double Chi2CutOff;
     double harmonic;
+    int numBins;
     double Omega;
     double[] timeData;
     double[] timeData3;
@@ -238,6 +239,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         Phasor = new javax.swing.JPanel();
         HarmonicToPlotLabel = new javax.swing.JLabel();
         FrequencyToPlotTF = new javax.swing.JFormattedTextField();
+        BinningTF=new javax.swing.JFormattedTextField();
         medianFilterCB = new javax.swing.JCheckBox();
         binningSelectorCB=new javax.swing.JCheckBox();
         applicationsMedianFilterLabel = new javax.swing.JLabel();
@@ -488,6 +490,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 FrequencyToPlotTFPropertyChange(evt);
             }
         });
+        
+        
 
         medianFilterCB.setSelected(true);
         medianFilterCB.setText("Median filter 3x3");
@@ -506,7 +510,19 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             }
         });
         
-        
+        //binning
+        BinningTF.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+        BinningTF.setText("1");
+        BinningTF.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            	BinningToPlotTFActionPerformed(evt);
+            }
+        });
+        BinningTF.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+            	BinningToPlotTFPropertyChange(evt);
+            }
+        });
         
 
         applicationsMedianFilterLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
@@ -673,6 +689,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 .addGroup(PhasorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(logPhasorTimes)
                     .addComponent(binningSelectorCB)
+                    .addComponent(BinningTF)
                     .addComponent(PhasorStack, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(PhasorLayout.createSequentialGroup()
@@ -702,6 +719,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 .addComponent(logPhasorTimes)
                 .addGap(18, 18, 18)
                 .addComponent(binningSelectorCB)
+                .addGap(18, 18, 18)
+                .addComponent(BinningTF)
                 .addGap(18, 18, 18)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
@@ -2270,6 +2289,18 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             e.printStackTrace();
         }
     }//GEN-LAST:event_FrequencyToPlotTFActionPerformed
+    
+    
+    private void BinningToPlotTFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FrequencyToPlotTFActionPerformed
+        try {
+            numBins = Integer.parseInt(BinningTF.getText());
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_FrequencyToPlotTFActionPerformed
+    
+    
+    
 
     private void FrequencyToPlotTFPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_FrequencyToPlotTFPropertyChange
         try {
@@ -2278,6 +2309,15 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             e.printStackTrace();
         }
     }//GEN-LAST:event_FrequencyToPlotTFPropertyChange
+    
+    private void BinningToPlotTFPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_FrequencyToPlotTFPropertyChange
+        try {
+        	numBins = Integer.parseInt(BinningTF.getText());
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_FrequencyToPlotTFPropertyChange
+
 
     private void cameraOffsetTFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cameraOffsetTFActionPerformed
         try {
@@ -3026,6 +3066,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     private javax.swing.JPanel Experimental;
     private javax.swing.JPanel Fitting;
     private javax.swing.JFormattedTextField FrequencyToPlotTF;
+    private javax.swing.JFormattedTextField BinningTF;//binning
     private javax.swing.JLabel HarmonicToPlotLabel;
     private javax.swing.JLabel ImagePixelSizeText;
     private javax.swing.JLabel ImagePixelSizeText1;
@@ -3645,7 +3686,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     	phasorFitter.setBinFactor(binFactor);
     	phasorFitter.setThreshold(threshold, terminalThreshold);
     	phasorFitter.setMedianFilter(medianFilter, applicationsMedianFilter);
-    	phasorFitter.setBinning(useBinning);
+        phasorFitter.setBinning(useBinning);
+        phasorFitter.setNumBins(numBins);
     	
     	
     }

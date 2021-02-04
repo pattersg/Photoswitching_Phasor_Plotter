@@ -274,6 +274,11 @@ public class PhasorOperation {
 		this.useBinning = useBinning;
 
 	}
+	public void setNumBins(int numBins) {
+		spatialBinningNum = numBins;
+		IJ.log("bins used "+Boolean.toString(useBinning)+" "+Integer.toString(numBins));
+
+	}
 	
 	public void RunPhasorPlotStack() throws Exception {
 		
@@ -371,7 +376,7 @@ public class PhasorOperation {
 									
 										
 										if(useBinning) {	//binning introduced
-											spatialBinningNum=3;
+
 											int bin=spatialBinningNum;
 
 											if((x>(width-bin)|(y>(height-bin)))) continue; //avoiding corner pixels
