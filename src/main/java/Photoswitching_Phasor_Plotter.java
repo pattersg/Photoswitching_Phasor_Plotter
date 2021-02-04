@@ -123,6 +123,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     ImagePlus phasorPlotImg;
     ImageProcessor imP;
     boolean medianFilter;
+    boolean useBinning;
     int applicationsMedianFilter;
     boolean backgroundSubtract;
     double[] backGroundValues;
@@ -238,6 +239,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         HarmonicToPlotLabel = new javax.swing.JLabel();
         FrequencyToPlotTF = new javax.swing.JFormattedTextField();
         medianFilterCB = new javax.swing.JCheckBox();
+        binningSelectorCB=new javax.swing.JCheckBox();
         applicationsMedianFilterLabel = new javax.swing.JLabel();
         applicationMedFilterTF = new javax.swing.JFormattedTextField();
         useTOneEstimateCB = new javax.swing.JCheckBox();
@@ -494,6 +496,18 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 medianFilterCBActionPerformed(evt);
             }
         });
+        
+        //binning
+        binningSelectorCB.setSelected(true);
+        binningSelectorCB.setText("Binning ");
+        binningSelectorCB.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            	binningSelectorCBActionPerformed(evt);
+            }
+        });
+        
+        
+        
 
         applicationsMedianFilterLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         applicationsMedianFilterLabel.setText("Applications of  median filter ");
@@ -597,6 +611,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 logPhasorTimesActionPerformed(evt);
             }
         });
+        
+        
 
         jPanel2.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
@@ -656,6 +672,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 .addGap(78, 78, 78)
                 .addGroup(PhasorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(logPhasorTimes)
+                    .addComponent(binningSelectorCB)
                     .addComponent(PhasorStack, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(PhasorLayout.createSequentialGroup()
@@ -683,6 +700,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 .addComponent(PhasorStack, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(7, 7, 7)
                 .addComponent(logPhasorTimes)
+                .addGap(18, 18, 18)
+                .addComponent(binningSelectorCB)
                 .addGap(18, 18, 18)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
@@ -2314,6 +2333,15 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             medianFilter = false;
         }
     }//GEN-LAST:event_medianFilterCBActionPerformed
+    
+    private void binningSelectorCBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_medianFilterCBActionPerformed
+        if (binningSelectorCB.isSelected()) {
+        	useBinning = true;
+        }
+        if (!binningSelectorCB.isSelected()) {
+        	useBinning = false;
+        }
+    }//GEN-LAST:event_medianFilterCBActionPerformed
 
     private void backgroundSubtractCBStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_backgroundSubtractCBStateChanged
         if (backgroundSubtractCB.isSelected()) {
@@ -3106,7 +3134,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     private javax.swing.JFormattedTextField varParamTF;
     // End of variables declaration//GEN-END:variables
 
-    
+    private javax.swing.JCheckBox binningSelectorCB;
+
 
 
 
@@ -3616,6 +3645,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     	phasorFitter.setBinFactor(binFactor);
     	phasorFitter.setThreshold(threshold, terminalThreshold);
     	phasorFitter.setMedianFilter(medianFilter, applicationsMedianFilter);
+    	phasorFitter.setBinning(useBinning);
     	
     	
     }
