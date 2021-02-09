@@ -147,6 +147,8 @@ public class PhasorOperation {
 	int applicationsMedianFilter;
 
 
+
+
 	//gui element need to make sure they are independent element
 	Plot phasorPlot;
 
@@ -291,6 +293,20 @@ public class PhasorOperation {
 	public double[][][]  getGsData(){
 		return GsData;
 	}
+
+	public void setBackground(boolean backgroundSubtract){
+		this.backgroundSubtract=backgroundSubtract;
+	}
+
+	public void setBackgroundValue(double []backGroundValuetoSet){
+
+		backGroundValues=new double[backGroundValuetoSet.length];
+		for (int backV=0;backV<backGroundValues.length;backV++){
+			this.backGroundValues[backV]=backGroundValuetoSet[backV];
+		}
+
+	}
+
 	public void RunPhasorPlotStack() throws Exception {
 		
 		IJ.resetMinAndMax(img);
@@ -1362,7 +1378,7 @@ public class PhasorOperation {
             }
         }
 
-        IJ.log("sumG value "+Double.toString(sumG)+" and counter "+Double.toString(counter));
+
         returnArray[0]=Math.round(sumG/counter*1000.0)/1000.0;
         returnArray[1]=Math.round(sumS/counter*1000.0)/1000.0;
         return returnArray;

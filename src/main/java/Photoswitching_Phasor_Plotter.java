@@ -2406,6 +2406,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             backgroundSubtract = true;
         }
         backGroundValues=getTAxisProfile();
+        
+
     }//GEN-LAST:event_backGrdSubtractActionPerformed
 
     private void applicationMedFilterTFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applicationMedFilterTFActionPerformed
@@ -3724,7 +3726,10 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     	phasorFitter.setMedianFilter(medianFilter, applicationsMedianFilter);
         phasorFitter.setBinning(useBinning);
         phasorFitter.setNumBins(numBins);
-    	
+        phasorFitter.setBackground(backgroundSubtract);
+        if(backgroundSubtract){
+            phasorFitter.setBackgroundValue(backGroundValues);
+        }
     	
     }
 
