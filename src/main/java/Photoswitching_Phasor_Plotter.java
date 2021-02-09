@@ -502,7 +502,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         });
         
         //binning
-        binningSelectorCB.setSelected(true);
+        binningSelectorCB.setSelected(false);
         binningSelectorCB.setText("Binning ");
         binningSelectorCB.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -688,8 +688,12 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 .addGap(78, 78, 78)
                 .addGroup(PhasorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(logPhasorTimes)
-                    .addComponent(binningSelectorCB)
-                    .addComponent(BinningTF)
+                    .addGroup(PhasorLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(binningSelectorCB))
+                    .addGroup(PhasorLayout.createSequentialGroup()
+                        .addGap(100, 100, 100)
+                        .addComponent(BinningTF,javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(PhasorStack, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(PhasorLayout.createSequentialGroup()
@@ -717,11 +721,11 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 .addComponent(PhasorStack, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(7, 7, 7)
                 .addComponent(logPhasorTimes)
-                .addGap(18, 18, 18)
-                .addComponent(binningSelectorCB)
-                .addGap(18, 18, 18)
-                .addComponent(BinningTF)
-                .addGap(18, 18, 18)
+                .addGap(8, 8, 8)
+                .addGroup(PhasorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(binningSelectorCB)
+                    .addComponent(BinningTF,javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(5, 5, 5)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(useTOneEstimateCB)
@@ -1948,7 +1952,10 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             	//newcode
                 //run_PhasorPlot_on_Stack();
             	initPhasorFitting();
-            	phasorFitter.RunPhasorPlotStack();
+                phasorFitter.RunPhasorPlotStack();
+                //phasorPlot=phasorFitter.getPhasorPlot();
+               
+                
             } catch (Exception ex) {
                 Logger.getLogger(Photoswitching_Phasor_Plotter.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -2676,8 +2683,10 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
     private void getChannelAROIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getChannelAROIActionPerformed
         
-        phasorPlotROIChA = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorPlot);
-        double[] phasorFilteredDataMeans = getMeanFromFilteredData(phasorPlotROIChA);
+        //phasorPlotROIChA = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorPlot);
+        phasorPlotROIChA = getCalibratedPixelsFromPlotWindow(phasorFitter.getPhasorPlot());
+        //double[] phasorFilteredDataMeans = getMeanFromFilteredData(phasorPlotROIChA);
+        double[] phasorFilteredDataMeans = phasorFitter.getMeanFromFilteredData(phasorPlotROIChA);
         chA_Gmean_TF.setText(String.valueOf(phasorFilteredDataMeans[0]));
         chA_Smean_TF.setText(String.valueOf(phasorFilteredDataMeans[1]));
         useChA_CB.setSelected(true);
@@ -2686,8 +2695,11 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
     private void getChannelBROIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getChannelBROIActionPerformed
         
-        phasorPlotROIChB = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorPlot);
-        double[] phasorFilteredDataMeans = getMeanFromFilteredData(phasorPlotROIChB);
+        // phasorPlotROIChB = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorPlot);
+        // double[] phasorFilteredDataMeans = getMeanFromFilteredData(phasorPlotROIChB);
+        phasorPlotROIChB = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorFitter.getPhasorPlot());
+        double[] phasorFilteredDataMeans = phasorFitter.getMeanFromFilteredData(phasorPlotROIChB);
+
         chB_Gmean_TF.setText(String.valueOf(phasorFilteredDataMeans[0]));
         chB_Smean_TF.setText(String.valueOf(phasorFilteredDataMeans[1]));
         useChB_CB.setSelected(true);
@@ -2695,8 +2707,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
     private void getChannelCROIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getChannelCROIActionPerformed
         
-        phasorPlotROIChC = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorPlot);
-        double[] phasorFilteredDataMeans = getMeanFromFilteredData(phasorPlotROIChC);
+        phasorPlotROIChC = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorFitter.getPhasorPlot());
+
+        double[] phasorFilteredDataMeans = phasorFitter.getMeanFromFilteredData(phasorPlotROIChC);
         chC_Gmean_TF.setText(String.valueOf(phasorFilteredDataMeans[0]));
         chC_Smean_TF.setText(String.valueOf(phasorFilteredDataMeans[1]));
         useChC_CB.setSelected(true);
@@ -2711,6 +2724,29 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         }
     }//GEN-LAST:event_useTOneEstimateCBStateChanged
 
+
+    public static double[][] getCalibratedPixelsFromPlotWindow(Plot thePlot) {
+		//this gets the points within the ROI draw on a phasor plot
+		//it allows selection of subsets of data or a way to determine
+		//mean values for phase and modulation of data sets
+		//the first version required rectanglular ROIs since they are easy
+        //it was updated to use any ROI later
+
+		ImagePlus plotImg = thePlot.getImagePlus();
+        Roi roi = plotImg.getRoi();
+
+		Point[] pts = roi.getContainedPoints();
+		double[][] returnArray = new double [2][pts.length];
+        Calibration cal = plotImg.getCalibration();
+        
+        IJ.log("state "+Integer.toString(pts.length));
+		for(int i=0;i<pts.length;i++){
+			returnArray[0][i]=cal.getX(pts[i].x);
+			returnArray[1][i]=-(cal.getY(pts[i].y));
+		}
+		return returnArray;
+    }
+    
     private void chA_Name_TFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chA_Name_TFActionPerformed
         chA_name = chA_Name_TF.getText();
     }//GEN-LAST:event_chA_Name_TFActionPerformed
@@ -2736,8 +2772,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     }//GEN-LAST:event_chC_Name_TFPropertyChange
 
     private void getChannelDROIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getChannelDROIActionPerformed
-        phasorPlotROIChD = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorPlot);
-        double[] phasorFilteredDataMeans = getMeanFromFilteredData(phasorPlotROIChD);
+        phasorPlotROIChD = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorFitter.getPhasorPlot());
+        double[] phasorFilteredDataMeans = phasorFitter.getMeanFromFilteredData(phasorPlotROIChD);
         chD_Gmean_TF.setText(String.valueOf(phasorFilteredDataMeans[0]));
         chD_Smean_TF.setText(String.valueOf(phasorFilteredDataMeans[1]));
         useChD_CB.setSelected(true);
@@ -2768,8 +2804,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     }//GEN-LAST:event_chD_Name_TFPropertyChange
 
     private void getChannelEROIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getChannelEROIActionPerformed
-        phasorPlotROIChE = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorPlot);
-        double[] phasorFilteredDataMeans = getMeanFromFilteredData(phasorPlotROIChE);
+        phasorPlotROIChE = UtilityFunction.getCalibratedPixelsFromPlotWindow(phasorFitter.getPhasorPlot());
+        double[] phasorFilteredDataMeans = phasorFitter.getMeanFromFilteredData(phasorPlotROIChE);
         chE_Gmean_TF.setText(String.valueOf(phasorFilteredDataMeans[0]));
         chE_Smean_TF.setText(String.valueOf(phasorFilteredDataMeans[1]));
         useChE_CB.setSelected(true);
@@ -3780,6 +3816,10 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         //calculates the mean phase and modulation of a distribution of points
         //on a Phasor plot
         //usually used to determine reference data points for un-mixing
+
+        GmData=phasorFitter.getGmData();
+        GsData=phasorFitter.getGsData();
+
         double[]returnArray = new double[2];
         double sumG = 0;
         double sumS = 0;
@@ -3795,6 +3835,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 }
             }
         }
+
+        IJ.log("sumG value "+Double.toString(sumG)+" and counter "+Double.toString(counter));
         returnArray[0]=Math.round(sumG/counter*1000.0)/1000.0;
         returnArray[1]=Math.round(sumS/counter*1000.0)/1000.0;
         return returnArray;

@@ -279,7 +279,18 @@ public class PhasorOperation {
 		IJ.log("bins used "+Boolean.toString(useBinning)+" "+Integer.toString(numBins));
 
 	}
+
+	public Plot getPhasorPlot(){
+		return phasorPlot;
+	}
 	
+	public double[][][]  getGmData(){
+		return GmData;
+	}
+
+	public double[][][]  getGsData(){
+		return GsData;
+	}
 	public void RunPhasorPlotStack() throws Exception {
 		
 		IJ.resetMinAndMax(img);
@@ -1282,6 +1293,7 @@ public class PhasorOperation {
         return false;
     }
 
+	
     public void MakeSavePhasorParameterImage() {
     	if (rateDataFromPhasor == null || GmData == null || GsData == null) {//Chi2G == null) {
     		IJ.showMessage("Pixel Fitter", "Fit parameter data unavailable");
@@ -1325,6 +1337,35 @@ public class PhasorOperation {
 
     		}
     	}
+	}
+	
+	public double [] getMeanFromFilteredData(double[][]theBounds) {
+        //calculates the mean phase and modulation of a distribution of points
+        //on a Phasor plot
+        //usually used to determine reference data points for un-mixing
+
+
+        
+        double[]returnArray = new double[2];
+        double sumG = 0;
+        double sumS = 0;
+        double counter = 0;
+        for (int cyc = 0; cyc < 1; cyc++) {
+            for (int y = 0; y < imageH; y++) {
+                for (int x = 0; x < imageW; x++) {
+                    if(containsMatch(GmData[x][y][cyc],theBounds[0]) && containsMatch(GsData[x][y][cyc],theBounds[1])){
+                        sumG = sumG+GmData[x][y][cyc];
+                        sumS = sumS+GsData[x][y][cyc];
+                        counter=counter+1;
+                    }
+                }
+            }
+        }
+
+        IJ.log("sumG value "+Double.toString(sumG)+" and counter "+Double.toString(counter));
+        returnArray[0]=Math.round(sumG/counter*1000.0)/1000.0;
+        returnArray[1]=Math.round(sumS/counter*1000.0)/1000.0;
+        return returnArray;
     }
 
 
