@@ -141,6 +141,14 @@ public class ExpCurveFitter {
 	ImagePlus wmkImage;
 	ImagePlus a1Image;
 
+	boolean listenersRemoved;
+	ImageCanvas canvas;
+	ImageCanvas canvas2;
+	public double[] yAxis;
+    public double[] xAxis;
+    String xLabel;
+    String yLabel;
+
 	public void setUseChannelValues(boolean chA, boolean chB, boolean chC, boolean chD, boolean chE) {
 		this.useChA = chA;
 		this.useChB = chB;
@@ -256,6 +264,13 @@ public class ExpCurveFitter {
 		this.numRestarts = numRestarts;
 	}
 
+	public ImagePlus getImagePlus(){
+		return img;
+	}
+
+	public double[] getTimeData3(){
+		return timeData3;
+	}
 	public void psFitExponential() throws Exception {
 		IJ.resetMinAndMax(img);
 		// in case the image is opened without using the plugin BioFormats button
@@ -1066,5 +1081,42 @@ public class ExpCurveFitter {
 		imp.show();
 		return imp;
 	}
+
+
+	void getFitValue(boolean fitSingle, boolean fitDouble, boolean fitTriple, double[] fitValues,int xpoint, int ypoint, int c){
+		if (fitTriple) {
+			fitValues[0] = Chi2G[xpoint][ypoint][c];
+			fitValues[1] = offsetDataG[xpoint][ypoint][c];
+			fitValues[2] = a1DataG[xpoint][ypoint][c];
+			fitValues[3] = k1DataG[xpoint][ypoint][c];
+			fitValues[4] = a2DataG[xpoint][ypoint][c];
+			fitValues[5] = k2DataG[xpoint][ypoint][c];
+			fitValues[6] = a3DataG[xpoint][ypoint][c];
+			fitValues[7] = k3DataG[xpoint][ypoint][c];
+		}
+		if (fitDouble) {
+			fitValues[0] = Chi2G[xpoint][ypoint][c];
+			fitValues[1] = offsetDataG[xpoint][ypoint][c];
+			fitValues[2] = a1DataG[xpoint][ypoint][c];
+			fitValues[3] = k1DataG[xpoint][ypoint][c];
+			fitValues[4] = a2DataG[xpoint][ypoint][c];
+			fitValues[5] = k2DataG[xpoint][ypoint][c];
+		}
+		if (fitSingle) {
+			fitValues[0] = Chi2G[xpoint][ypoint][c];
+			fitValues[1] = offsetDataG[xpoint][ypoint][c];
+			fitValues[2] = a1DataG[xpoint][ypoint][c];
+			fitValues[3] = k1DataG[xpoint][ypoint][c];
+		}
+	}
+
+	double[][][] getK1dataG(){
+		return k1DataG;
+	}
+
+
+	
+
+
 
 }

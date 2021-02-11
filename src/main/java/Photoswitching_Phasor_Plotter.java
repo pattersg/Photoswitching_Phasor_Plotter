@@ -364,8 +364,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         ExaminePixels.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ExaminePixelsActionPerformed(evt);
+
             }
-        });
+        }); 
 
         MakeSavePhasorParameterImage.setText("Save phasor parameters");
         MakeSavePhasorParameterImage.setMaximumSize(new java.awt.Dimension(200, 30));
@@ -1962,7 +1963,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     }//GEN-LAST:event_PhasorStackActionPerformed
 
     private void ExaminePixelsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExaminePixelsActionPerformed
-        if (a1DataG == null || k1DataG == null || offsetDataG == null || Chi2G == null) {
+        //if (a1DataG == null || k1DataG == null || offsetDataG == null || Chi2G == null) {
+        if (false) {
+        
             img = IJ.getImage();
             if (img.getTitle().contains("RateConstantsImage")) {
                 IJ.showMessage("Pixel Fitter", "Data image selected\nPlease select the raw image data set");
@@ -3395,6 +3398,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         //This sets up the mouse listeners for examining the fits of individual pixels after a fitting routine
         String[] imageTitles = WindowManager.getImageTitles();
         listenersRemoved = false;
+        img=expFitter.getImagePlus();
         ImageWindow win = img.getWindow();
         win.addWindowListener(win);
         canvas = win.getCanvas();
@@ -3482,7 +3486,9 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         img.setRoi(xpoint, ypoint, 1, 1);
         wmkImage.setRoi(xpoint, ypoint, 1, 1);
         yAxis = values;
-        xAxis = timeData3;
+       // xAxis = timeData3;
+        xAxis=expFitter.getTimeData3();
+
         if (size > numCycles * imagesPerCycle) {
             double[] yAxis2 = new double[numCycles * imagesPerCycle];
             double[] xAxis2 = new double[numCycles * imagesPerCycle];
@@ -3509,36 +3515,40 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         Plot plot = new Plot("Data and fit", xLabel, yLabel);
         plot.setAxisYLog(yLog);
 
+        boolean k1dataGNUll=expFitter.getK1dataG() != null;
+
         plot.add("circles", x, y);
         double[] fitToAdd = new double[x.length];
         double[] yForResiduals = new double[x.length];
-        if (k1DataG != null) {
+        if (k1dataGNUll) {
             for (int c = 0; c < numCycles; c++) {
                 double[] fitValues = new double[8];
-                if (fitTriple) {
-                    fitValues[0] = Chi2G[xpoint][ypoint][c];
-                    fitValues[1] = offsetDataG[xpoint][ypoint][c];
-                    fitValues[2] = a1DataG[xpoint][ypoint][c];
-                    fitValues[3] = k1DataG[xpoint][ypoint][c];
-                    fitValues[4] = a2DataG[xpoint][ypoint][c];
-                    fitValues[5] = k2DataG[xpoint][ypoint][c];
-                    fitValues[6] = a3DataG[xpoint][ypoint][c];
-                    fitValues[7] = k3DataG[xpoint][ypoint][c];
-                }
-                if (fitDouble) {
-                    fitValues[0] = Chi2G[xpoint][ypoint][c];
-                    fitValues[1] = offsetDataG[xpoint][ypoint][c];
-                    fitValues[2] = a1DataG[xpoint][ypoint][c];
-                    fitValues[3] = k1DataG[xpoint][ypoint][c];
-                    fitValues[4] = a2DataG[xpoint][ypoint][c];
-                    fitValues[5] = k2DataG[xpoint][ypoint][c];
-                }
-                if (fitSingle) {
-                    fitValues[0] = Chi2G[xpoint][ypoint][c];
-                    fitValues[1] = offsetDataG[xpoint][ypoint][c];
-                    fitValues[2] = a1DataG[xpoint][ypoint][c];
-                    fitValues[3] = k1DataG[xpoint][ypoint][c];
-                }
+                // if (fitTriple) {
+                //     fitValues[0] = Chi2G[xpoint][ypoint][c];
+                //     fitValues[1] = offsetDataG[xpoint][ypoint][c];
+                //     fitValues[2] = a1DataG[xpoint][ypoint][c];
+                //     fitValues[3] = k1DataG[xpoint][ypoint][c];
+                //     fitValues[4] = a2DataG[xpoint][ypoint][c];
+                //     fitValues[5] = k2DataG[xpoint][ypoint][c];
+                //     fitValues[6] = a3DataG[xpoint][ypoint][c];
+                //     fitValues[7] = k3DataG[xpoint][ypoint][c];
+                // }
+                // if (fitDouble) {
+                //     fitValues[0] = Chi2G[xpoint][ypoint][c];
+                //     fitValues[1] = offsetDataG[xpoint][ypoint][c];
+                //     fitValues[2] = a1DataG[xpoint][ypoint][c];
+                //     fitValues[3] = k1DataG[xpoint][ypoint][c];
+                //     fitValues[4] = a2DataG[xpoint][ypoint][c];
+                //     fitValues[5] = k2DataG[xpoint][ypoint][c];
+                // }
+                // if (fitSingle) {
+                //     fitValues[0] = Chi2G[xpoint][ypoint][c];
+                //     fitValues[1] = offsetDataG[xpoint][ypoint][c];
+                //     fitValues[2] = a1DataG[xpoint][ypoint][c];
+                //     fitValues[3] = k1DataG[xpoint][ypoint][c];
+                // }
+                expFitter.getFitValue(fitSingle, fitDouble, fitTriple, fitValues, xpoint, ypoint, c);
+                IJ.log(Double.toString(fitValues[0])+" fit values "+Double.toString(fitValues[1]));
                 
                 double[] x2 = new double[imagesPerCycle];
                 double[] x4Plot = new double[imagesPerCycle];
@@ -3595,8 +3605,10 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             plot.setLimits(xmin, xmax, ymin, ymax);
         }
         Plot plotResiduals = new Plot("Residuals", xLabel, yLabel);
-        if (k1DataG != null) {
+        //if (k1DataG != null) {
+        if (k1dataGNUll) {
             double[] resArray = UtilityFunction.subtractArrayFromArray(yForResiduals, fitToAdd);
+            IJ.log("residual print "+Double.toString(yForResiduals[0])+" "+Double.toString(fitToAdd[0]));
             plotResiduals.add("circles", x, resArray);
             if (!(ymin == 0.0 && ymax == 0.0)) {
                 double[] a = Tools.getMinMax(x);
@@ -3610,7 +3622,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         } else {
             pwin.drawPlot(plot);
         }
-        if (k1DataG != null) {
+        // if (k1DataG != null) {
+        if (k1dataGNUll) {
             if (pwin2 == null) {
                 pwin2 = plotResiduals.show();
             } else {
