@@ -1964,7 +1964,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
     private void ExaminePixelsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExaminePixelsActionPerformed
         //if (a1DataG == null || k1DataG == null || offsetDataG == null || Chi2G == null) {
-        if (false) {
+
+        if (expFitter.checkIfFittingOver()) {
         
             img = IJ.getImage();
             if (img.getTitle().contains("RateConstantsImage")) {
@@ -3548,7 +3549,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
                 //     fitValues[3] = k1DataG[xpoint][ypoint][c];
                 // }
                 expFitter.getFitValue(fitSingle, fitDouble, fitTriple, fitValues, xpoint, ypoint, c);
-                IJ.log(Double.toString(fitValues[0])+" fit values "+Double.toString(fitValues[1]));
+                //IJ.log(Double.toString(fitValues[0])+" fit values "+Double.toString(fitValues[1]));
                 
                 double[] x2 = new double[imagesPerCycle];
                 double[] x4Plot = new double[imagesPerCycle];
@@ -3608,7 +3609,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         //if (k1DataG != null) {
         if (k1dataGNUll) {
             double[] resArray = UtilityFunction.subtractArrayFromArray(yForResiduals, fitToAdd);
-            IJ.log("residual print "+Double.toString(yForResiduals[0])+" "+Double.toString(fitToAdd[0]));
+            //IJ.log("residual print "+Double.toString(yForResiduals[0])+" "+Double.toString(fitToAdd[0]));
             plotResiduals.add("circles", x, resArray);
             if (!(ymin == 0.0 && ymax == 0.0)) {
                 double[] a = Tools.getMinMax(x);
@@ -3709,6 +3710,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     	cfAzeroInst.setbinFactorImage(binFactorImage);
     	cfAzeroInst.setCameraGain(cameraGain);
         cfAzeroInst.setVarParam(varParam);
+        cfAzeroInst.setBinning(useBinning);
+        cfAzeroInst.setNumBins(numBins);
     	//copies phasor data from the phasor fitting to zero fitter
     	if(phasorFitter.isPhasorFitDone) {
     		//cfAzeroInst.copyPhasorData(arrayChA, arrayChB, arrayChC, arrayChD, arrayChE);//copies phasor data from the phasor fitting to zero fitter
@@ -3765,7 +3768,10 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     	expFitter.setCamergain(cameraGain);
     	expFitter.setLamdaNA(lambda, NA);
     	expFitter.setPixSizeBinfactor(pixSize, binFactorImage);
-    	expFitter.setVarParam(varParam);
+        expFitter.setVarParam(varParam);
+        expFitter.setBinning(useBinning);
+        expFitter.setNumBins(numBins);
+
 
     	//copies phasor data from the phasor fitting to zero fitter
     	if(phasorFitter.isPhasorFitDone) {

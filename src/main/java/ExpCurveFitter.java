@@ -147,7 +147,10 @@ public class ExpCurveFitter {
 	public double[] yAxis;
     public double[] xAxis;
     String xLabel;
-    String yLabel;
+	String yLabel;
+	
+	boolean useBinning;
+	int spatialBinningNum;
 
 	public void setUseChannelValues(boolean chA, boolean chB, boolean chC, boolean chD, boolean chE) {
 		this.useChA = chA;
@@ -271,6 +274,17 @@ public class ExpCurveFitter {
 	public double[] getTimeData3(){
 		return timeData3;
 	}
+
+	public void setBinning(boolean useBinning) {
+		this.useBinning = useBinning;
+
+	}
+	public void setNumBins(int numBins) {
+		spatialBinningNum = numBins;
+		IJ.log("bins used "+Boolean.toString(useBinning)+" "+Integer.toString(numBins));
+
+	}
+
 	public void psFitExponential() throws Exception {
 		IJ.resetMinAndMax(img);
 		// in case the image is opened without using the plugin BioFormats button
@@ -400,15 +414,51 @@ public class ExpCurveFitter {
 								for (int z = 0; z < timeData.length; z++) {
 									timeDataArrayOfArrays[threadIndex][z] = timeData[z];
 									if (img.isHyperStack()) {
+
 										int z2 = img.getStackIndex(img.getC(), img.getZ(),
 												(cycleNum * imagesPerCycle) + z + 1) - 1;
-										pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, z2);
+
+										//useBinning
+										// useBinning=false;
+										// spatialBinningNum=5;
+										if(useBinning) {	//binning introduced
+
+											int bin=spatialBinningNum;
+
+											if((x>(width-bin)|(y>(height-bin)))) continue; //avoiding corner pixels
+											int sizeOfVoxels=bin*bin;// array to allocate for getting voxels
+											float []voxels = new float [sizeOfVoxels];
+											double pixelValue=0;
+											try {
+												img2.getVoxels(x, y, z2, bin, bin, 1, voxels);//crashes for x or y=511
+											}catch (IndexOutOfBoundsException e) {
+												IJ.log(Integer.toString(x)+"x, y="+Integer.toString(y));
+											}
+											//IJ.log(Integer.toString(voxels.length));
+
+											for (int iVoxel=0;iVoxel<voxels.length;iVoxel++) {
+												pixelValue+=voxels[iVoxel];
+											}
+
+											pixelsArrayOfArrays[threadIndex][z] = pixelValue/voxels.length;
+										}
+										else {
+									
+											pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, z2);
+
+										}
+
 									} else {
 										pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y,
 												(cycleNum * imagesPerCycle) + z);
 									}
 									// the pixel values are retrieved slightly differently depending on a hyperstack
 									// or not
+
+
+
+
+
 								}
 								pixelsArrayOfArrays[threadIndex] = UtilityFunction.subtractValueFromArray(
 										pixelsArrayOfArrays[threadIndex], ((cameraOffset * binFactor * binFactor)));
@@ -1112,6 +1162,10 @@ public class ExpCurveFitter {
 
 	double[][][] getK1dataG(){
 		return k1DataG;
+	}
+
+	boolean checkIfFittingOver(){
+		return (a1DataG == null || k1DataG == null || offsetDataG == null || Chi2G == null) ;
 	}
 
 
