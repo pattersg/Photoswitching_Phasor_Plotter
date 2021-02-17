@@ -700,8 +700,11 @@ public class AzeroCurveFitter {
 		// of the initial parameters by the
 		// getMinimizer().setInitialParamVariations(double[]) method (especially if one
 		// or more of the initialParams are zero).
-		CurveFitter cf = new CurveFitter(x, y);
-		CurveFitter cf1 = new CurveFitter(x, y);
+		//CurveFitter cf = new CurveFitter(x, y);
+
+		psCurveFitter cf=new psCurveFitter(x,y);
+
+
 		cf.setOffsetMultiplySlopeParams(-1, -1, -1);
 		cf.setMaxIterations(maxIter);
 

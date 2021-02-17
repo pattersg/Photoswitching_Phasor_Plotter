@@ -822,7 +822,9 @@ public class ExpCurveFitter {
 		Arrays.fill(returnArray, 0);
 
 		double[] paramVariations = UtilityFunction.multiplyArrayByValue(params, varParam);
-		CurveFitter cf = new CurveFitter(x, y);
+		//CurveFitter cf = new CurveFitter(x, y);
+		psCurveFitter cf = new psCurveFitter(x, y);
+
 
 		if (fitDouble || fitTriple) {
 			// Have to use a user function for the 2 and 3 component fits
@@ -893,7 +895,7 @@ public class ExpCurveFitter {
 			// for the single exponential with offset fit
 			// we use the built in version
 			// we found it to be ~5 faster than the same type in the user function
-			cf = new CurveFitter(x, y);
+			cf = new psCurveFitter(x, y);
 			double errotTol = 10;
 			double[] fitparam = { paramsPassed[2], paramsPassed[3], paramsPassed[1], maxiteration, numRestarts,
 					errotTol };
