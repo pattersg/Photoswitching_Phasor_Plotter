@@ -703,6 +703,7 @@ public class AzeroCurveFitter {
 		//CurveFitter cf = new CurveFitter(x, y);
 
 		psCurveFitter cf=new psCurveFitter(x,y);
+		double[] paramToReturn;
 
 
 		cf.setOffsetMultiplySlopeParams(-1, -1, -1);
@@ -710,6 +711,12 @@ public class AzeroCurveFitter {
 
 		// should set the initial pa
 		// cf.setRestarts(4);
+
+		boolean newCode=true;
+//old code begins
+
+	double[] returnArray = new double[paramsPassed.length];	
+		if(!newCode){		
 
 		cf.doCustomFit(new UserFunction() {
 			@Override
@@ -735,36 +742,87 @@ public class AzeroCurveFitter {
 				if (useChA && useChB && !useChC && !useChD && !useChE) {
 					return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x))
 							+ (par[2] * par[2] * Math.exp(-chB_Kmean * x));
+							
 				}
 				if (useChA && !useChB && !useChC && !useChD && !useChE) {
-					return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x));
+					return par[0] + (par[1] * par[1]*Math.exp(-chA_Kmean * x));
+
 				} else {
 					return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x));
 				}
 			}
 		}, params.length, "", params, paramVariations, false);
 
-		// params.length, "", params, null, false);
-		double[] paramToReturn = cf.getParams();
+
+		double errotTol = 10;
+		cf.setMaxIterations(maxiteration);
+		cf.setRestarts(2);
+		cf.setMaxError(errotTol);
+		double[] fittedParam = cf.getParams();
+		double[] residuals = cf.getResiduals();
+		double Chi2 = Photoswitching_Phasor_Plotter.calculateReducedChi2(residuals, y);
+
+			
+
+		paramToReturn = cf.getParams();
 		double Chi2ToReturn = Photoswitching_Phasor_Plotter.calculateReducedChi2(cf.getResiduals(), y);
-		double[] returnArray = new double[paramsPassed.length];
+
 		Arrays.fill(returnArray, 0);
 		returnArray[0] = Chi2ToReturn;
 		returnArray[1] = paramToReturn[0];
-		// IJ.log(Integer.toString(cf.getIterations()));// this prints the number of
-		// iteration actually used
+		double R2 = cf.getFitGoodness();
 
+		IJ.log("length of Params "+Integer.toString(cf.getParams().length)+" R2 vallue "+Double.toString(R2)+" Iternation set "+Integer.toString(cf.getIterations()));
+		IJ.log("param list "+Double.toString(fittedParam[0])+" "+Double.toString(fittedParam[1])+" "+Double.toString(fittedParam[2]));
+		
+
+
+
+		// iteration actually used
+//old code ends
+
+	}							//experimental code begins
+		else {
+		//double[] fitparam = { 0, 0, 0, maxiteration, 2,errotTol };
+
+		double errotTol = 0.01;
+		//cf.setInitialParameters(fitparam);
+		cf.setMaxIterations(maxiteration);
+		cf.setRestarts(2);
+		cf.setMaxError(errotTol);
+		cf.doFit(25); // exponential decay with offset: (A*exp^(-k*t))+offset
+		double[] fittedParam = cf.getParams();
+
+		double R2 = cf.getFitGoodness();
+		double[] residuals = cf.getResiduals();
+		paramToReturn = cf.getParams();
+
+
+		IJ.log("length of Params "+Integer.toString(cf.getParams().length)+" R2 vallue "+Double.toString(R2)+" Iternation set "+Integer.toString(cf.getIterations()));
+		IJ.log("param list "+Double.toString(fittedParam[0])+" "+Double.toString(fittedParam[1])+" "+Double.toString(fittedParam[2]));
+		double Chi2ToReturn = Photoswitching_Phasor_Plotter.calculateReducedChi2(cf.getResiduals(), y);
+		returnArray[0] = Chi2ToReturn;
+		returnArray[1] = paramToReturn[0];
+		}
+											//experimental code ends
+		
+		
 		iterCount += cf.getIterations();
 		cycleCountForavgIter++;
+		
 
 		// IJ.log("chi2 calculated "+Double.toString(Chi2ToReturn)+" param 0 =
 		// "+Double.toString(paramToReturn[0]));
 		if (useChA) {
-			returnArray[2] = paramToReturn[1] * paramToReturn[1];// these are the square roots; convert back to the
+			 returnArray[2] = paramToReturn[1] * paramToReturn[1];// these are the square roots; convert back to the
+																	// fractional contributions
+			//returnArray[2] = paramToReturn[1]>0?(paramToReturn[1]>50?0:paramToReturn[1]):0;
+			//returnArray[2] = (paramToReturn[1]>0?paramToReturn[1]:0) ;// these are the square roots; convert back to the
 																	// fractional contributions
 		}
 		if (useChB) {
 			returnArray[3] = paramToReturn[2] * paramToReturn[2];
+			//returnArray[3] = Math.sqrt(paramToReturn[1]);
 		}
 		if (useChC) {
 			returnArray[4] = paramToReturn[3] * paramToReturn[3];

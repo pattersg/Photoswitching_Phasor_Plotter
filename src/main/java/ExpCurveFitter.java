@@ -895,6 +895,8 @@ public class ExpCurveFitter {
 			// for the single exponential with offset fit
 			// we use the built in version
 			// we found it to be ~5 faster than the same type in the user function
+
+			
 			cf = new psCurveFitter(x, y);
 			double errotTol = 10;
 			double[] fitparam = { paramsPassed[2], paramsPassed[3], paramsPassed[1], maxiteration, numRestarts,
@@ -910,6 +912,30 @@ public class ExpCurveFitter {
 			returnArray[1] = fittedParam[2];
 			returnArray[2] = fittedParam[0];
 			returnArray[3] = fittedParam[1];
+
+			
+			//setMaxIterations
+			/*
+			cf = new psCurveFitter(x, y);
+			double errotTol = 10;
+			double[] fitparam = { 0,0,0,paramsPassed[2], paramsPassed[3], paramsPassed[1], maxiteration, numRestarts,
+					errotTol };
+			
+			cf.setInitialParameters(fitparam);
+			cf.setMaxIterations(maxiteration);
+			cf.setRestarts(numRestarts);
+			cf.setMaxError(errotTol);
+			cf.doFit(24); // exponential decay with offset: (A*exp^(-k*t))+offset
+			double[] fittedParam = cf.getParams();
+			double R2 = cf.getFitGoodness();
+			double[] residuals = cf.getResiduals();
+			double Chi2 = calculateReducedChi2(residuals, y);
+
+			returnArray[0] = Chi2;
+			returnArray[1] = fittedParam[2];
+			returnArray[2] = fittedParam[0];
+			returnArray[3] = fittedParam[1];
+			*/
 		}
 
 		IJ.log(Integer.toString(cf.getIterations()));// this prints the number of iteration actually used
