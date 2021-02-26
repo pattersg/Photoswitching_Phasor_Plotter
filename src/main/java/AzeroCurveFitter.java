@@ -285,7 +285,7 @@ public class AzeroCurveFitter {
 										- 1];
 
 								// initialization for this round of fitting
-								double[] fitparam = initAzeorExponentialFit(x, y, cycleNum);
+								double[] fitparam = initAzeorExponentialFit(x, y, cycleNum, firstframeint, lastframeint);
 
 								if ((firstframeint - lastframeint) < PixelThresholdCutOff) {
 									Chi2G[x][y][cycleNum] = Double.NaN;
@@ -386,12 +386,12 @@ public class AzeroCurveFitter {
 
 	}
 
-	private double[] initAzeorExponentialFit(int x, int y, int cycleNum) {
+	private double[] initAzeorExponentialFit(int x, int y, int cycleNum, double initguess, double lastframeint) {
 
-		double guess_o = 0;
-		double guess_a1 = 0;
-		double guess_a2 = 0;
-		double guess_a3 = 0;
+		double guess_o = lastframeint;//offset
+		double guess_a1 = (initguess - lastframeint) / 3;
+		double guess_a2 = (initguess - lastframeint) / 3;
+		double guess_a3 = (initguess - lastframeint) / 3;
 		double guess_a4 = 0;
 		double guess_a5 = 0;
 
@@ -401,7 +401,7 @@ public class AzeroCurveFitter {
 			// initialize using the data from phasor
 			// later expand and compare with subsequent cycles
 			// IJ.log("came here");
-			guess_o = 0;
+			guess_o = lastframeint;
 			guess_a1 = arrayChA_p[x][y][0];
 			guess_a2 = arrayChB_p[x][y][0];
 			guess_a3 = arrayChC_p[x][y][0];
@@ -712,7 +712,7 @@ public class AzeroCurveFitter {
 		// should set the initial pa
 		// cf.setRestarts(4);
 
-		boolean newCode=true;
+		boolean newCode=false;
 //old code begins
 
 	double[] returnArray = new double[paramsPassed.length];	

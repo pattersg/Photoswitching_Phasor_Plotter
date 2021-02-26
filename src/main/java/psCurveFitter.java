@@ -52,12 +52,12 @@ public class psCurveFitter implements UserFunction {
 	public static final int STRAIGHT_LINE = 0, POLY2 = 1, POLY3 = 2, POLY4 = 3, EXPONENTIAL = 4, POWER = 5, LOG = 6,
 			RODBARD = 7, GAMMA_VARIATE = 8, LOG2 = 9, RODBARD2 = 10, EXP_WITH_OFFSET = 11, GAUSSIAN = 12,
 			EXP_RECOVERY = 13, INV_RODBARD = 14, EXP_REGRESSION = 15, POWER_REGRESSION = 16, POLY5 = 17, POLY6 = 18,
-			POLY7 = 19, POLY8 = 20, GAUSSIAN_NOOFFSET = 21, EXP_RECOVERY_NOOFFSET = 22, CHAPMAN = 23, EXP2FIT = 24, EXP1FIXFIT=25, EXP2FIXFIT=26;
+			POLY7 = 19, POLY8 = 20, GAUSSIAN_NOOFFSET = 21, EXP_RECOVERY_NOOFFSET = 22, CHAPMAN = 23, EXP2FIT = 24, EXP1FIXFIT=25, EXP2FIXFIT=26, EXP3FIXFIT=27;
 
 	/** Nicer sequence of the built-in function types */
 	public static final int[] sortedTypes = { STRAIGHT_LINE, POLY2, POLY3, POLY4, POLY5, POLY6, POLY7, POLY8, POWER,
 			POWER_REGRESSION, EXPONENTIAL, EXP_REGRESSION, EXP_WITH_OFFSET, EXP_RECOVERY, EXP_RECOVERY_NOOFFSET, LOG,
-			LOG2, GAUSSIAN, GAUSSIAN_NOOFFSET, RODBARD, RODBARD2, INV_RODBARD, GAMMA_VARIATE, CHAPMAN, EXP2FIT,EXP1FIXFIT,EXP2FIXFIT };
+			LOG2, GAUSSIAN, GAUSSIAN_NOOFFSET, RODBARD, RODBARD2, INV_RODBARD, GAMMA_VARIATE, CHAPMAN, EXP2FIT,EXP1FIXFIT,EXP2FIXFIT,EXP3FIXFIT };
 
 	/** Names of the built-in fit functions */
 	public static final String[] fitList = { "Straight Line", "2nd Degree Polynomial", "3rd Degree Polynomial",
@@ -65,7 +65,7 @@ public class psCurveFitter implements UserFunction {
 			"Rodbard (NIH Image)", "Exponential with Offset", "Gaussian", "Exponential Recovery", "Inverse Rodbard",
 			"Exponential (linear regression)", "Power (linear regression)", "5th Degree Polynomial",
 			"6th Degree Polynomial", "7th Degree Polynomial", "8th Degree Polynomial", "Gaussian (no offset)",
-			"Exponential Recovery (no offset)", "Chapman-Richards","double exponential","single exponential fix","double exponential fix" }; // fList, doFit(), getNumParams() and
+			"Exponential Recovery (no offset)", "Chapman-Richards","double exponential","single exponential fix","double exponential fix","triple exponential fix fit" }; // fList, doFit(), getNumParams() and
 																		// makeInitialParamsAndVariations() must also be
 																		// updated
 
@@ -84,7 +84,9 @@ public class psCurveFitter implements UserFunction {
 			"y = a*(1-exp(-b*x))^c", // CHAPMAN
 			"y = a*(exp(-bx))+c*(exp(-dx))+e", // EXP2FIT
 			"y = a*(exp(-ka*x))+b",
-			"y = a*(exp(-ka*x))+b(exp(-kb*x))+c"
+			"y = a*(exp(-ka*x))+b(exp(-kb*x))+c",
+			"y = a*(exp(-ka*x))+b(exp(-kb*x))+c(exp(-kc*x))+d",
+			
 
 	};
 
@@ -416,6 +418,8 @@ public class psCurveFitter implements UserFunction {
 				return 2;
 			case EXP2FIXFIT:
 				return 3;
+			case EXP3FIXFIT:
+				return 4;
 		}
 		return 0;
 	}
@@ -575,7 +579,9 @@ public class psCurveFitter implements UserFunction {
 				//return p[0]+p[1] *(Math.exp(-4.3 * x));
 			
 			case EXP2FIXFIT:
-				return p[0]+p[1] * (Math.exp(-4.3 * x))+p[2] * (Math.exp(-0.984 * x));
+				return p[0]+Math.pow(p[1],2) * (Math.exp(-4.3 * x))+Math.pow(p[2],2) * (Math.exp(-0.984 * x));
+			case EXP3FIXFIT:
+				return p[0]+Math.pow(p[1],2) * (Math.exp(-4.3 * x))+Math.pow(p[2],2) * (Math.exp(-0.98 * x))+Math.pow(p[3],2) * (Math.exp(-0.184 * x));
 			default:
 				return 0.0;
 		}
@@ -1207,22 +1213,33 @@ public class psCurveFitter implements UserFunction {
 					break;
 				// no case CUSTOM: here, was done above
 				case EXP1FIXFIT:
-					initialParams[1] = 0.5 * yMean; // don't care, we will do this via regression
-					initialParams[0] = (yMax - yMin) / Math.exp(initialParams[1] * xMean) * Math.signum(slope)
-						* fitType == EXP_RECOVERY ? 1 : -1; // don't care, we will do this via regression
+					/*
+					 * initialParams[1] = 0.5 * yMean; // don't care, we will do this via regression
+					 * initialParams[0] = (yMax - yMin) / Math.exp(initialParams[1] * xMean) *
+					 * Math.signum(slope) fitType == EXP1FIXFIT ? 1 : -1; // don't care, we will do
+					 * this via regression
+					 */
 
+					initialParams[1] = initialParams[0] = 0.5 * yMean;
 					break;
 				
 				case EXP2FIXFIT:
 
-
-					initialParams[0] = 0.5 * yMean; // don't care, we will do this via regression
+// the init condition needs to be changed
+					initialParams[0] = 1. / (xMax - xMin + 1e-100);
 					// initialParams[2] = initialParams[1] = (yMax - yMin) / Math.exp(initialParams[0] * xMean)
 					// * Math.signum(slope) * fitType == EXP2FIXFIT ? 1 : -1; // don't care, we will do this via
 																				// regression
-					initialParams[2] = initialParams[1] = (yMax - yMin) / Math.exp(initialParams[0] * xMean);
-							
-																																			// regression
+					
+					//initialParams[2] = initialParams[1] = (yMax - yMin) / Math.exp(initialParams[0] * xMean);
+					initialParams[2] = initialParams[1]=0.5*yMean;
+				case EXP3FIXFIT:
+					initialParams[0] = 0;
+
+					
+					//initialParams[2] = initialParams[1] = (yMax - yMin) / Math.exp(initialParams[0] * xMean);
+					initialParams[2] = initialParams[1]=initialParams[3]=0.3*yData[0];
+
 
 					break;
 			}
@@ -1288,7 +1305,12 @@ public class psCurveFitter implements UserFunction {
 					initialParamVariations[1] = 0.1 / (xMax - xMin + 1e-100);
 					break;
 
-					case EXP2FIXFIT:
+				case EXP2FIXFIT:
+					initialParamVariations[1] = 0.1 / (xMax - xMin + 1e-100);
+					initialParamVariations[2] = 0.1 / (xMax - xMin + 1e-100);
+					break;
+
+				case EXP3FIXFIT:
 					initialParamVariations[1] = 0.1 / (xMax - xMin + 1e-100);
 					initialParamVariations[2] = 0.1 / (xMax - xMin + 1e-100);
 					break;
@@ -1374,6 +1396,11 @@ public class psCurveFitter implements UserFunction {
 			case EXP2FIXFIT: //a*exp(-ka*x)+b*(-kb*x)+c
 				offsetParam = 0;
 				factorParam = 2;
+				break;
+
+			case EXP3FIXFIT: //a*exp(-ka*x)+b*(-kb*x)+c
+				offsetParam = 0;
+				factorParam = 3;
 				break;
 		}
 		numRegressionParams = 0;
