@@ -314,7 +314,7 @@ public class AzeroCurveFitter {
 										a4DataG[x][y][cycleNum] = (float) fittedParam[5];
 										a5DataG[x][y][cycleNum] = (float) fittedParam[6];
 
-										if (cycleNum < (numCycles - 1)) {// OPT copy fitted param for initialization for
+										if (cycleNum < (numCycles - 1)) {// copy fitted param for initialization for
 																			// next cycle //newcode
 											offsetDataG_t[x][y][cycleNum] = (float) fittedParam[1];
 											a1DataG_t[x][y][cycleNum] = (float) fittedParam[2];
@@ -388,41 +388,75 @@ public class AzeroCurveFitter {
 
 	private double[] initAzeorExponentialFit(int x, int y, int cycleNum, double initguess, double lastframeint) {
 
-		double guess_o = lastframeint;//offset
-		double guess_a1 = (initguess - lastframeint) / 3;
-		double guess_a2 = (initguess - lastframeint) / 3;
-		double guess_a3 = (initguess - lastframeint) / 3;
-		double guess_a4 = 0;
-		double guess_a5 = 0;
+		double[] fitData = new double[7];
 
-		if (usePhasortoInitialize && isPhasorFitDone && (cycleNum == 0)) {// this should be for the first cycle only,
-																			// add a condition
-			// now testing for first cycle only
-			// initialize using the data from phasor
-			// later expand and compare with subsequent cycles
-			// IJ.log("came here");
-			guess_o = lastframeint;
-			guess_a1 = arrayChA_p[x][y][0];
-			guess_a2 = arrayChB_p[x][y][0];
-			guess_a3 = arrayChC_p[x][y][0];
-			guess_a4 = arrayChD_p[x][y][0];
-			guess_a5 = arrayChE_p[x][y][0];
+		fitData[0]=0;
+		fitData[1]=0;
+		fitData[2]=fitData[3]=fitData[4]=fitData[5]=fitData[6]=0;
+		//itData[2]=fitData[3]=fitData[4]=fitData[5]=fitData[6]=(initguess - lastframeint) / 3;// some pixels are missing when this is used for initilization
+		
+
+		// double guess_o = 0;// offset
+		// double guess_a1 = (initguess - lastframeint) / 3;
+		// double guess_a2 = (initguess - lastframeint) / 3;
+		// double guess_a3 = (initguess - lastframeint) / 3;
+		// double guess_a4 = 0;
+		// double guess_a5 = 0;
+
+		//Using the fitted values from immediate left pixel, this provides the best approximation
+		if ((cycleNum == 0) && (x > 0)) {
+			fitData[1] = offsetDataG[x - 1][y][0]<0.01?0:offsetDataG[x - 1][y][0];
+			fitData[2] = a1DataG[x - 1][y][0]<0.01?0:a1DataG[x - 1][y][0];
+			fitData[3] = a2DataG[x - 1][y][0]<0.01?0:a2DataG[x - 1][y][0];
+			fitData[4] = a3DataG[x - 1][y][0]<0.01?0:a3DataG[x - 1][y][0];
+			fitData[5] = a4DataG[x - 1][y][0]<0.01?0:a4DataG[x - 1][y][0];
+			fitData[6] = a5DataG[x - 1][y][0]<0.01?0:a5DataG[x - 1][y][0];
+		} else {
+
+			if (usePhasortoInitialize && isPhasorFitDone && (cycleNum == 0)) {// this should be for the first cycle
+																				// only,
+																				// add a condition
+				// now testing for first cycle only
+				// initialize using the data from phasor
+				// later expand and compare with subsequent cycles
+				// IJ.log("came here");
+				// guess_o = offsetDataG[x][y][0];
+				// guess_a1 = arrayChA_p[x][y][0];
+				// guess_a2 = arrayChB_p[x][y][0];
+				// guess_a3 = arrayChC_p[x][y][0];
+				// guess_a4 = arrayChD_p[x][y][0];
+				// guess_a5 = arrayChE_p[x][y][0];
+				fitData[1] = offsetDataG[x][y][0];
+				fitData[2] = arrayChA_p[x][y][0];
+				fitData[3] = arrayChB_p[x][y][0];
+				fitData[4] = arrayChC_p[x][y][0];
+				fitData[5] = arrayChD_p[x][y][0];
+				fitData[6] = arrayChE_p[x][y][0];
+			}
+
+			if (cycleNum > 0) {
+
+				// copying from the previous cycle for initializing value for the subsequent
+				// cycle
+				// guess_o = offsetDataG_t[x][y][cycleNum - 1];
+				// //guess_o = lastframeint;
+				// guess_a1 = a1DataG_t[x][y][cycleNum - 1];
+				// guess_a2 = a2DataG_t[x][y][cycleNum - 1];
+				// guess_a3 = a3DataG_t[x][y][cycleNum - 1];
+				// guess_a4 = a4DataG_t[x][y][cycleNum - 1];
+				// guess_a5 = a5DataG_t[x][y][cycleNum - 1];
+				
+				fitData[1] = offsetDataG_t[x][y][cycleNum - 1];
+				//guess_o = lastframeint;
+				fitData[2] = a1DataG_t[x][y][cycleNum - 1];
+				fitData[3] = a2DataG_t[x][y][cycleNum - 1];
+				fitData[4] = a3DataG_t[x][y][cycleNum - 1];
+				fitData[5] = a4DataG_t[x][y][cycleNum - 1];
+				fitData[6] = a5DataG_t[x][y][cycleNum - 1];
+
+			}
 		}
-
-		if (cycleNum > 0) {
-
-			// copying from the previous cycle for initializing value for the subsequent
-			// cycle
-			guess_o = offsetDataG_t[x][y][cycleNum - 1];
-			guess_a1 = a1DataG_t[x][y][cycleNum - 1];
-			guess_a2 = a2DataG_t[x][y][cycleNum - 1];
-			guess_a3 = a3DataG_t[x][y][cycleNum - 1];
-			guess_a4 = a4DataG_t[x][y][cycleNum - 1];
-			guess_a5 = a5DataG_t[x][y][cycleNum - 1];
-
-		}
-
-		double[] fitData = { 0, guess_o, guess_a1, guess_a2, guess_a3, guess_a4, guess_a5 };
+		//double[] fitData = { 0, guess_o, guess_a1, guess_a2, guess_a3, guess_a4, guess_a5 };
 		return fitData;
 
 	}
@@ -754,7 +788,7 @@ public class AzeroCurveFitter {
 		}, params.length, "", params, paramVariations, false);
 
 
-		double errotTol = 10;
+		double errotTol = 0.01;
 		cf.setMaxIterations(maxiteration);
 		cf.setRestarts(2);
 		cf.setMaxError(errotTol);
@@ -772,8 +806,8 @@ public class AzeroCurveFitter {
 		returnArray[1] = paramToReturn[0];
 		double R2 = cf.getFitGoodness();
 
-		IJ.log("length of Params "+Integer.toString(cf.getParams().length)+" R2 vallue "+Double.toString(R2)+" Iternation set "+Integer.toString(cf.getIterations()));
-		IJ.log("param list "+Double.toString(fittedParam[0])+" "+Double.toString(fittedParam[1])+" "+Double.toString(fittedParam[2]));
+		//IJ.log("length of Params "+Integer.toString(cf.getParams().length)+" R2 vallue "+Double.toString(R2)+" Iternation set "+Integer.toString(cf.getIterations()));
+		//IJ.log("param list "+Double.toString(fittedParam[0])+" "+Double.toString(fittedParam[1])+" "+Double.toString(fittedParam[2]));
 		
 
 
