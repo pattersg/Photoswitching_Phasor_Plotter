@@ -768,7 +768,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
 
         maxIterationsTF.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
         maxIterationsTF.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-        maxIterationsTF.setText("2000");
+        maxIterationsTF.setText("500");
         maxIterationsTF.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 maxIterationsTFActionPerformed(evt);
@@ -3713,9 +3713,10 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
         cfAzeroInst.setBinning(useBinning);
         cfAzeroInst.setNumBins(numBins);
     	//copies phasor data from the phasor fitting to zero fitter
-    	if(phasorFitter.isPhasorFitDone) {
+    	if(phasorFitter.isPhasorFitDone && usePhasortoInitialize) {
     		//cfAzeroInst.copyPhasorData(arrayChA, arrayChB, arrayChC, arrayChD, arrayChE);//copies phasor data from the phasor fitting to zero fitter
-    		cfAzeroInst.copyPhasorData(phasorFitter.getChAdata(), phasorFitter.getChBdata(),phasorFitter.getChCdata(), phasorFitter.getChDdata(), phasorFitter.getChEdata());
+            IJ.log("Copying phasor Data");
+            cfAzeroInst.copyPhasorData(phasorFitter.getChAdata(), phasorFitter.getChBdata(),phasorFitter.getChCdata(), phasorFitter.getChDdata(), phasorFitter.getChEdata());
     	}
     	cfAzeroInst.setPhasorBooleans(usePhasortoInitialize, phasorFitter.isPhasorFitDone);//recheck to make sure it is done properly
     	

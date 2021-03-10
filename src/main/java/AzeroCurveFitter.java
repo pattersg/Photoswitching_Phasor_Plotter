@@ -204,6 +204,7 @@ public class AzeroCurveFitter {
 			final double[][] timeDataArrayOfArrays = new double[threads.length][timeData.length];
 			final double[][] pixelsArrayOfArrays = new double[threads.length][timeData.length];
 
+			double[] fttDataZeroInit = { 0, 0, 0, 0, 0, 0, 0 };
 			for (int ithread = 0; ithread < threads.length; ithread++) {
 				final int threadIndex = ithread;
 				final int cycleNum = cycle;
@@ -264,6 +265,7 @@ public class AzeroCurveFitter {
 											}
 
 											pixelsArrayOfArrays[threadIndex][z] = pixelValue / voxels.length;
+											// pixelsArrayOfArrays[threadIndex][z] = pixelValue;
 										} else {
 
 											pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, z2);
@@ -271,7 +273,7 @@ public class AzeroCurveFitter {
 										}
 										/////
 
-										//pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, z2);
+										// pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y, z2);
 
 									} else {
 										pixelsArrayOfArrays[threadIndex][z] = img2.getVoxel(x, y,
@@ -285,7 +287,8 @@ public class AzeroCurveFitter {
 										- 1];
 
 								// initialization for this round of fitting
-								double[] fitparam = initAzeorExponentialFit(x, y, cycleNum, firstframeint, lastframeint);
+								double[] fitparam = initAzeorExponentialFit(x, y, cycleNum, firstframeint,
+										lastframeint);
 
 								if ((firstframeint - lastframeint) < PixelThresholdCutOff) {
 									Chi2G[x][y][cycleNum] = Double.NaN;
@@ -306,6 +309,18 @@ public class AzeroCurveFitter {
 											fitparam, maxiteration);
 									double Chi2 = fittedParam[0];
 
+									// do a refit if the returned values are NaN
+									double thresholdIntensity = 0.1;
+									if ((Chi2 > Chi2CutOff)) {
+										// |(fittedParam[2]<thresholdIntensity)|(fittedParam[3]<thresholdIntensity)|(fittedParam[4]<thresholdIntensity)|(fittedParam[1]<thresholdIntensity)
+										IJ.log("Chi2 before " + Double.toString(Chi2));
+										fittedParam = fitAzeroExponentialFunction(timeDataArrayOfArrays[threadIndex],
+												pixelsArrayOfArrays[threadIndex], fttDataZeroInit, maxiteration * 2);
+										IJ.log("Chi2 after " + Double.toString(fittedParam[0]));
+									}
+									// second fitting if NaN occurs
+
+									Chi2 = fittedParam[0];
 									if (Chi2 < Chi2CutOff) {
 										offsetDataG[x][y][cycleNum] = (float) fittedParam[1];
 										a1DataG[x][y][cycleNum] = (float) fittedParam[2];
@@ -334,8 +349,8 @@ public class AzeroCurveFitter {
 										a5DataG[x][y][cycleNum] = Double.NaN;
 
 										if (cycleNum < (numCycles - 1)) {
+											// ignoring the NaN for initialization purpose for now
 											offsetDataG_t[x][y][cycleNum] = Double.NaN;
-											;
 											a1DataG_t[x][y][cycleNum] = (float) Double.NaN;
 											a2DataG_t[x][y][cycleNum] = (float) Double.NaN;
 											a3DataG_t[x][y][cycleNum] = (float) Double.NaN;
@@ -390,11 +405,12 @@ public class AzeroCurveFitter {
 
 		double[] fitData = new double[7];
 
-		fitData[0]=0;
-		fitData[1]=0;
-		fitData[2]=fitData[3]=fitData[4]=fitData[5]=fitData[6]=0;
-		//itData[2]=fitData[3]=fitData[4]=fitData[5]=fitData[6]=(initguess - lastframeint) / 3;// some pixels are missing when this is used for initilization
-		
+		fitData[0] = 0;
+		fitData[1] = 0;
+		fitData[2] = fitData[3] = fitData[4] = fitData[5] = fitData[6] = 0;
+		// itData[2]=fitData[3]=fitData[4]=fitData[5]=fitData[6]=(initguess -
+		// lastframeint) / 3;// some pixels are missing when this is used for
+		// initilization
 
 		// double guess_o = 0;// offset
 		// double guess_a1 = (initguess - lastframeint) / 3;
@@ -403,14 +419,63 @@ public class AzeroCurveFitter {
 		// double guess_a4 = 0;
 		// double guess_a5 = 0;
 
-		//Using the fitted values from immediate left pixel, this provides the best approximation
-		if ((cycleNum == 0) && (x > 0)) {
-			fitData[1] = offsetDataG[x - 1][y][0]<0.01?0:offsetDataG[x - 1][y][0];
-			fitData[2] = a1DataG[x - 1][y][0]<0.01?0:a1DataG[x - 1][y][0];
-			fitData[3] = a2DataG[x - 1][y][0]<0.01?0:a2DataG[x - 1][y][0];
-			fitData[4] = a3DataG[x - 1][y][0]<0.01?0:a3DataG[x - 1][y][0];
-			fitData[5] = a4DataG[x - 1][y][0]<0.01?0:a4DataG[x - 1][y][0];
-			fitData[6] = a5DataG[x - 1][y][0]<0.01?0:a5DataG[x - 1][y][0];
+		double thresholdForZeroInitiation = 1;
+		// Using the fitted values from immediate left pixel, this provides the best
+		// approximation
+		if ((cycleNum == 0) && (x > 0) && (y > 0)) {
+
+			// These values include nan values
+			fitData[1] = (offsetDataG[x - 1][y][0]+offsetDataG[x][y-1][0])/2;
+			fitData[2] = (a1DataG[x - 1][y][0]+a1DataG[x][y-1][0])/2;
+			fitData[3] = (a2DataG[x - 1][y][0]+a2DataG[x][y-1][0])/2;
+			fitData[4] = (a3DataG[x - 1][y][0]+a3DataG[x][y-1][0])/2;
+			fitData[5] = (a4DataG[x - 1][y][0]+a4DataG[x][y-1][0])/2;
+			fitData[6] = (a5DataG[x - 1][y][0]+a5DataG[x][y-1][0])/2;
+
+			//these dont include nan
+			// fitData[1] = (offsetDataG_t[x - 1][y][0]+offsetDataG_t[x][y-1][0])/2;
+			// fitData[2] = (a1DataG_t[x - 1][y][0]+a1DataG_t[x][y-1][0])/2;
+			// fitData[3] = (a2DataG_t[x - 1][y][0]+a2DataG_t[x][y-1][0])/2;
+			// fitData[4] = (a3DataG_t[x - 1][y][0]+a3DataG_t[x][y-1][0])/2;
+			// fitData[5] = (a4DataG_t[x - 1][y][0]+a4DataG_t[x][y-1][0])/2;
+			// fitData[6] = (a5DataG_t[x - 1][y][0]+a5DataG_t[x][y-1][0])/2;
+
+
+			// Replace NaN values for initialization
+			// if (Double.isNaN(fitData[1])) {
+			// 	fitData[1] = Double.isNaN(offsetDataG[x][y - 1][0]) ? 0 : offsetDataG[x][y - 1][0];
+			// }
+
+			// if (Double.isNaN(fitData[2])) {
+			// 	fitData[2] = Double.isNaN(a1DataG[x][y - 1][0]) ? 0 : a1DataG[x][y - 1][0];
+			// }
+			// if (Double.isNaN(fitData[3])) {
+			// 	fitData[3] = Double.isNaN(a2DataG[x][y - 1][0]) ? 0 : a2DataG[x][y - 1][0];
+			// }
+			// if (Double.isNaN(fitData[4])) {
+			// 	fitData[4] = Double.isNaN(a3DataG[x][y - 1][0]) ? 0 : a3DataG[x][y - 1][0];
+			// }
+			// if (Double.isNaN(fitData[5])) {
+			// 	fitData[5] = Double.isNaN(a4DataG[x][y - 1][0]) ? 0 : a4DataG[x][y - 1][0];
+			// }
+			// if (Double.isNaN(fitData[6])) {
+			// 	fitData[6] = Double.isNaN(a5DataG[x][y - 1][0]) ? 0 : a5DataG[x][y - 1][0];
+			// }
+
+			fitData[1]=Double.isNaN(fitData[1])?0:fitData[1];
+			fitData[2]=Double.isNaN(fitData[2])?0:fitData[2];
+			fitData[3]=Double.isNaN(fitData[3])?0:fitData[3];
+			fitData[4]=Double.isNaN(fitData[4])?0:fitData[4];
+			fitData[5]=Double.isNaN(fitData[5])?0:fitData[5];
+			fitData[6]=Double.isNaN(fitData[6])?0:fitData[6];
+
+			fitData[1] = (fitData[1] < thresholdForZeroInitiation) ? 0 : fitData[1];
+			fitData[2] = (fitData[2] < thresholdForZeroInitiation) ? 0 : fitData[2];
+			fitData[3] = (fitData[3] < thresholdForZeroInitiation) ? 0 : fitData[3];
+			fitData[4] = (fitData[4] < thresholdForZeroInitiation) ? 0 : fitData[4];
+			fitData[5] = (fitData[5] < thresholdForZeroInitiation) ? 0 : fitData[5];
+			fitData[6] = (fitData[6] < thresholdForZeroInitiation) ? 0 : fitData[6];
+
 		} else {
 
 			if (usePhasortoInitialize && isPhasorFitDone && (cycleNum == 0)) {// this should be for the first cycle
@@ -426,7 +491,7 @@ public class AzeroCurveFitter {
 				// guess_a3 = arrayChC_p[x][y][0];
 				// guess_a4 = arrayChD_p[x][y][0];
 				// guess_a5 = arrayChE_p[x][y][0];
-				fitData[1] = offsetDataG[x][y][0];
+				// fitData[1] = offsetDataG[x][y][0];
 				fitData[2] = arrayChA_p[x][y][0];
 				fitData[3] = arrayChB_p[x][y][0];
 				fitData[4] = arrayChC_p[x][y][0];
@@ -445,9 +510,9 @@ public class AzeroCurveFitter {
 				// guess_a3 = a3DataG_t[x][y][cycleNum - 1];
 				// guess_a4 = a4DataG_t[x][y][cycleNum - 1];
 				// guess_a5 = a5DataG_t[x][y][cycleNum - 1];
-				
+
 				fitData[1] = offsetDataG_t[x][y][cycleNum - 1];
-				//guess_o = lastframeint;
+				// guess_o = lastframeint;
 				fitData[2] = a1DataG_t[x][y][cycleNum - 1];
 				fitData[3] = a2DataG_t[x][y][cycleNum - 1];
 				fitData[4] = a3DataG_t[x][y][cycleNum - 1];
@@ -456,7 +521,8 @@ public class AzeroCurveFitter {
 
 			}
 		}
-		//double[] fitData = { 0, guess_o, guess_a1, guess_a2, guess_a3, guess_a4, guess_a5 };
+		// double[] fitData = { 0, guess_o, guess_a1, guess_a2, guess_a3, guess_a4,
+		// guess_a5 };
 		return fitData;
 
 	}
@@ -600,9 +666,10 @@ public class AzeroCurveFitter {
 		this.useBinning = useBinning;
 
 	}
+
 	public void setNumBins(int numBins) {
 		spatialBinningNum = numBins;
-		IJ.log("bins used "+Boolean.toString(useBinning)+" "+Integer.toString(numBins));
+		IJ.log("bins used " + Boolean.toString(useBinning) + " " + Integer.toString(numBins));
 
 	}
 	// *******************Utilities*******************************
@@ -734,11 +801,10 @@ public class AzeroCurveFitter {
 		// of the initial parameters by the
 		// getMinimizer().setInitialParamVariations(double[]) method (especially if one
 		// or more of the initialParams are zero).
-		//CurveFitter cf = new CurveFitter(x, y);
+		// CurveFitter cf = new CurveFitter(x, y);
 
-		psCurveFitter cf=new psCurveFitter(x,y);
+		psCurveFitter cf = new psCurveFitter(x, y);
 		double[] paramToReturn;
-
 
 		cf.setOffsetMultiplySlopeParams(-1, -1, -1);
 		cf.setMaxIterations(maxIter);
@@ -746,117 +812,115 @@ public class AzeroCurveFitter {
 		// should set the initial pa
 		// cf.setRestarts(4);
 
-		boolean newCode=false;
-//old code begins
+		boolean newCode = false;
+		// old code begins
 
-	double[] returnArray = new double[paramsPassed.length];	
-		if(!newCode){		
+		double[] returnArray = new double[paramsPassed.length];
+		if (!newCode) {
 
-		cf.doCustomFit(new UserFunction() {
-			@Override
-			public double userFunction(double[] par, double x) {
-				if (useChA && useChB && useChC && useChD && useChE) {
-					return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x))
-							+ (par[2] * par[2] * Math.exp(-chB_Kmean * x))
-							+ (par[3] * par[3] * Math.exp(-chC_Kmean * x))
-							+ (par[4] * par[4] * Math.exp(-chD_Kmean * x))
-							+ (par[5] * par[5] * Math.exp(-chE_Kmean * x));
+			cf.doCustomFit(new UserFunction() {
+				@Override
+				public double userFunction(double[] par, double x) {
+					if (useChA && useChB && useChC && useChD && useChE) {
+						return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x))
+								+ (par[2] * par[2] * Math.exp(-chB_Kmean * x))
+								+ (par[3] * par[3] * Math.exp(-chC_Kmean * x))
+								+ (par[4] * par[4] * Math.exp(-chD_Kmean * x))
+								+ (par[5] * par[5] * Math.exp(-chE_Kmean * x));
+					}
+					if (useChA && useChB && useChC && useChD && !useChE) {
+						return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x))
+								+ (par[2] * par[2] * Math.exp(-chB_Kmean * x))
+								+ (par[3] * par[3] * Math.exp(-chC_Kmean * x))
+								+ (par[4] * par[4] * Math.exp(-chD_Kmean * x));
+					}
+					if (useChA && useChB && useChC && !useChD && !useChE) {
+						return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x))
+								+ (par[2] * par[2] * Math.exp(-chB_Kmean * x))
+								+ (par[3] * par[3] * Math.exp(-chC_Kmean * x));
+					}
+					if (useChA && useChB && !useChC && !useChD && !useChE) {
+						return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x))
+								+ (par[2] * par[2] * Math.exp(-chB_Kmean * x));
+
+					}
+					if (useChA && !useChB && !useChC && !useChD && !useChE) {
+						return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x));
+
+					} else {
+						return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x));
+					}
 				}
-				if (useChA && useChB && useChC && useChD && !useChE) {
-					return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x))
-							+ (par[2] * par[2] * Math.exp(-chB_Kmean * x))
-							+ (par[3] * par[3] * Math.exp(-chC_Kmean * x))
-							+ (par[4] * par[4] * Math.exp(-chD_Kmean * x));
-				}
-				if (useChA && useChB && useChC && !useChD && !useChE) {
-					return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x))
-							+ (par[2] * par[2] * Math.exp(-chB_Kmean * x))
-							+ (par[3] * par[3] * Math.exp(-chC_Kmean * x));
-				}
-				if (useChA && useChB && !useChC && !useChD && !useChE) {
-					return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x))
-							+ (par[2] * par[2] * Math.exp(-chB_Kmean * x));
-							
-				}
-				if (useChA && !useChB && !useChC && !useChD && !useChE) {
-					return par[0] + (par[1] * par[1]*Math.exp(-chA_Kmean * x));
+			}, params.length, "", params, paramVariations, false);
 
-				} else {
-					return par[0] + (par[1] * par[1] * Math.exp(-chA_Kmean * x));
-				}
-			}
-		}, params.length, "", params, paramVariations, false);
+			double errotTol = 10;
+			cf.setMaxIterations(maxiteration);
+			cf.setRestarts(2);
+			cf.setMaxError(errotTol);
+			double[] fittedParam = cf.getParams();
+			double[] residuals = cf.getResiduals();
+			double Chi2 = Photoswitching_Phasor_Plotter.calculateReducedChi2(residuals, y);
 
+			paramToReturn = cf.getParams();
+			double Chi2ToReturn = Photoswitching_Phasor_Plotter.calculateReducedChi2(cf.getResiduals(), y);
 
-		double errotTol = 0.01;
-		cf.setMaxIterations(maxiteration);
-		cf.setRestarts(2);
-		cf.setMaxError(errotTol);
-		double[] fittedParam = cf.getParams();
-		double[] residuals = cf.getResiduals();
-		double Chi2 = Photoswitching_Phasor_Plotter.calculateReducedChi2(residuals, y);
+			Arrays.fill(returnArray, 0);
+			returnArray[0] = Chi2ToReturn;
+			returnArray[1] = paramToReturn[0];
+			double R2 = cf.getFitGoodness();
 
-			
+			// IJ.log("length of Params "+Integer.toString(cf.getParams().length)+" R2
+			// vallue "+Double.toString(R2)+" Iternation set
+			// "+Integer.toString(cf.getIterations()));
+			// IJ.log("param list "+Double.toString(fittedParam[0])+"
+			// "+Double.toString(fittedParam[1])+" "+Double.toString(fittedParam[2]));
 
-		paramToReturn = cf.getParams();
-		double Chi2ToReturn = Photoswitching_Phasor_Plotter.calculateReducedChi2(cf.getResiduals(), y);
+			// iteration actually used
+			// old code ends
 
-		Arrays.fill(returnArray, 0);
-		returnArray[0] = Chi2ToReturn;
-		returnArray[1] = paramToReturn[0];
-		double R2 = cf.getFitGoodness();
-
-		//IJ.log("length of Params "+Integer.toString(cf.getParams().length)+" R2 vallue "+Double.toString(R2)+" Iternation set "+Integer.toString(cf.getIterations()));
-		//IJ.log("param list "+Double.toString(fittedParam[0])+" "+Double.toString(fittedParam[1])+" "+Double.toString(fittedParam[2]));
-		
-
-
-
-		// iteration actually used
-//old code ends
-
-	}							//experimental code begins
+		} // experimental code begins
 		else {
-		//double[] fitparam = { 0, 0, 0, maxiteration, 2,errotTol };
+			// double[] fitparam = { 0, 0, 0, maxiteration, 2,errotTol };
 
-		double errotTol = 0.01;
-		//cf.setInitialParameters(fitparam);
-		cf.setMaxIterations(maxiteration);
-		cf.setRestarts(2);
-		cf.setMaxError(errotTol);
-		cf.doFit(25); // exponential decay with offset: (A*exp^(-k*t))+offset
-		double[] fittedParam = cf.getParams();
+			double errotTol = 0.01;
+			// cf.setInitialParameters(fitparam);
+			cf.setMaxIterations(maxiteration);
+			cf.setRestarts(2);
+			cf.setMaxError(errotTol);
+			cf.doFit(25); // exponential decay with offset: (A*exp^(-k*t))+offset
+			double[] fittedParam = cf.getParams();
 
-		double R2 = cf.getFitGoodness();
-		double[] residuals = cf.getResiduals();
-		paramToReturn = cf.getParams();
+			double R2 = cf.getFitGoodness();
+			double[] residuals = cf.getResiduals();
+			paramToReturn = cf.getParams();
 
-
-		IJ.log("length of Params "+Integer.toString(cf.getParams().length)+" R2 vallue "+Double.toString(R2)+" Iternation set "+Integer.toString(cf.getIterations()));
-		IJ.log("param list "+Double.toString(fittedParam[0])+" "+Double.toString(fittedParam[1])+" "+Double.toString(fittedParam[2]));
-		double Chi2ToReturn = Photoswitching_Phasor_Plotter.calculateReducedChi2(cf.getResiduals(), y);
-		returnArray[0] = Chi2ToReturn;
-		returnArray[1] = paramToReturn[0];
+			IJ.log("length of Params " + Integer.toString(cf.getParams().length) + " R2 vallue " + Double.toString(R2)
+					+ " Iternation set " + Integer.toString(cf.getIterations()));
+			IJ.log("param list " + Double.toString(fittedParam[0]) + " " + Double.toString(fittedParam[1]) + " "
+					+ Double.toString(fittedParam[2]));
+			double Chi2ToReturn = Photoswitching_Phasor_Plotter.calculateReducedChi2(cf.getResiduals(), y);
+			returnArray[0] = Chi2ToReturn;
+			returnArray[1] = paramToReturn[0];
 		}
-											//experimental code ends
-		
-		
+		// experimental code ends
+
 		iterCount += cf.getIterations();
 		cycleCountForavgIter++;
-		
 
 		// IJ.log("chi2 calculated "+Double.toString(Chi2ToReturn)+" param 0 =
 		// "+Double.toString(paramToReturn[0]));
 		if (useChA) {
-			 returnArray[2] = paramToReturn[1] * paramToReturn[1];// these are the square roots; convert back to the
+			returnArray[2] = paramToReturn[1] * paramToReturn[1];// these are the square roots; convert back to the
 																	// fractional contributions
-			//returnArray[2] = paramToReturn[1]>0?(paramToReturn[1]>50?0:paramToReturn[1]):0;
-			//returnArray[2] = (paramToReturn[1]>0?paramToReturn[1]:0) ;// these are the square roots; convert back to the
-																	// fractional contributions
+			// returnArray[2] =
+			// paramToReturn[1]>0?(paramToReturn[1]>50?0:paramToReturn[1]):0;
+			// returnArray[2] = (paramToReturn[1]>0?paramToReturn[1]:0) ;// these are the
+			// square roots; convert back to the
+			// fractional contributions
 		}
 		if (useChB) {
 			returnArray[3] = paramToReturn[2] * paramToReturn[2];
-			//returnArray[3] = Math.sqrt(paramToReturn[1]);
+			// returnArray[3] = Math.sqrt(paramToReturn[1]);
 		}
 		if (useChC) {
 			returnArray[4] = paramToReturn[3] * paramToReturn[3];
