@@ -185,6 +185,10 @@ public class AzeroCurveFitter {
 		a4DataG_t = new double[imageW][imageH][numCycles];
 		a5DataG_t = new double[imageW][imageH][numCycles];
 
+		if(useBinning){
+			Chi2CutOff*=2*spatialBinningNum;
+		}
+
 		for (int cycle = 0; cycle < numCycles; cycle++) {
 			IJ.log("for each cycle");
 			// printSystemTime();
@@ -218,8 +222,8 @@ public class AzeroCurveFitter {
 
 					@Override
 					public void run() {
-						for (int y = threadIndex * height / threads.length; y < (threadIndex + 1) * height
-								/ threads.length; y++) {
+						for (int y = threadIndex * height / threads.length,count=0; y < (threadIndex + 1) * height
+								/ threads.length; y++,count++) {
 							if (threadIndex == threads.length - 1) {
 								int startY = threadIndex * height / threads.length;
 								int endY = (threadIndex + 1) * height / threads.length;
@@ -288,7 +292,7 @@ public class AzeroCurveFitter {
 
 								// initialization for this round of fitting
 								double[] fitparam = initAzeorExponentialFit(x, y, cycleNum, firstframeint,
-										lastframeint);
+										lastframeint,count==0);
 
 								if ((firstframeint - lastframeint) < PixelThresholdCutOff) {
 									Chi2G[x][y][cycleNum] = Double.NaN;
@@ -309,19 +313,20 @@ public class AzeroCurveFitter {
 											fitparam, maxiteration);
 									double Chi2 = fittedParam[0];
 
-									// do a refit if the returned values are NaN
+									// do a refit if the returned values are less than chi2cutoff
 									double thresholdIntensity = 0.1;
 									if ((Chi2 > Chi2CutOff)) {
 										// |(fittedParam[2]<thresholdIntensity)|(fittedParam[3]<thresholdIntensity)|(fittedParam[4]<thresholdIntensity)|(fittedParam[1]<thresholdIntensity)
-										IJ.log("Chi2 before " + Double.toString(Chi2));
+
 										fittedParam = fitAzeroExponentialFunction(timeDataArrayOfArrays[threadIndex],
 												pixelsArrayOfArrays[threadIndex], fttDataZeroInit, maxiteration * 2);
-										IJ.log("Chi2 after " + Double.toString(fittedParam[0]));
 									}
 									// second fitting if NaN occurs
 
+									
 									Chi2 = fittedParam[0];
 									if (Chi2 < Chi2CutOff) {
+										Chi2G[x][y][cycleNum] = (float) fittedParam[0];
 										offsetDataG[x][y][cycleNum] = (float) fittedParam[1];
 										a1DataG[x][y][cycleNum] = (float) fittedParam[2];
 										a2DataG[x][y][cycleNum] = (float) fittedParam[3];
@@ -401,12 +406,12 @@ public class AzeroCurveFitter {
 
 	}
 
-	private double[] initAzeorExponentialFit(int x, int y, int cycleNum, double initguess, double lastframeint) {
+	private double[] initAzeorExponentialFit(int x, int y, int cycleNum, double initguess, double lastframeint,boolean isFirstLine) {
 
 		double[] fitData = new double[7];
 
-		fitData[0] = 0;
-		fitData[1] = 0;
+		fitData[0] = 0;//chi2
+		fitData[1] = 0;//offset
 		fitData[2] = fitData[3] = fitData[4] = fitData[5] = fitData[6] = 0;
 		// itData[2]=fitData[3]=fitData[4]=fitData[5]=fitData[6]=(initguess -
 		// lastframeint) / 3;// some pixels are missing when this is used for
@@ -422,15 +427,31 @@ public class AzeroCurveFitter {
 		double thresholdForZeroInitiation = 1;
 		// Using the fitted values from immediate left pixel, this provides the best
 		// approximation
-		if ((cycleNum == 0) && (x > 0) && (y > 0)) {
+
+		if ((cycleNum == 0) && (x > 0) && isFirstLine){//first line of each threading block
+			fitData[1] = offsetDataG[x - 1][y][0];
+			fitData[2] = a1DataG[x - 1][y][0];
+			fitData[3] = a2DataG[x - 1][y][0];
+			fitData[4] = a3DataG[x - 1][y][0];
+			fitData[5] = a4DataG[x - 1][y][0];
+			fitData[6] = a5DataG[x - 1][y][0];
+
+
+			for (int index=1;index<7;index++){
+				fitData[index]=Double.isNaN(fitData[index])?0:fitData[index];
+				fitData[index] = (fitData[index] < thresholdForZeroInitiation) ? 0 : fitData[index];
+			}
+		}
+
+		if ((cycleNum == 0) && (x > 0) && (!isFirstLine)) {//lines after first lines
 
 			// These values include nan values
-			fitData[1] = (offsetDataG[x - 1][y][0]+offsetDataG[x][y-1][0])/2;
-			fitData[2] = (a1DataG[x - 1][y][0]+a1DataG[x][y-1][0])/2;
-			fitData[3] = (a2DataG[x - 1][y][0]+a2DataG[x][y-1][0])/2;
-			fitData[4] = (a3DataG[x - 1][y][0]+a3DataG[x][y-1][0])/2;
-			fitData[5] = (a4DataG[x - 1][y][0]+a4DataG[x][y-1][0])/2;
-			fitData[6] = (a5DataG[x - 1][y][0]+a5DataG[x][y-1][0])/2;
+			fitData[1] = (offsetDataG[x - 1][y][0]+offsetDataG[x][y-1][0]+offsetDataG[x-1][y-1][0])/3;
+			fitData[2] = (a1DataG[x - 1][y][0]+a1DataG[x][y-1][0]+a1DataG[x-1][y-1][0])/3;
+			fitData[3] = (a2DataG[x - 1][y][0]+a2DataG[x][y-1][0]+a2DataG[x-1][y-1][0])/3;
+			fitData[4] = (a3DataG[x - 1][y][0]+a3DataG[x][y-1][0]+a3DataG[x-1][y-1][0])/3;
+			fitData[5] = (a4DataG[x - 1][y][0]+a4DataG[x][y-1][0]+a4DataG[x-1][y-1][0])/3;
+			fitData[6] = (a5DataG[x - 1][y][0]+a5DataG[x][y-1][0]+a5DataG[x-1][y-1][0])/3;
 
 			//these dont include nan
 			// fitData[1] = (offsetDataG_t[x - 1][y][0]+offsetDataG_t[x][y-1][0])/2;
@@ -462,21 +483,29 @@ public class AzeroCurveFitter {
 			// 	fitData[6] = Double.isNaN(a5DataG[x][y - 1][0]) ? 0 : a5DataG[x][y - 1][0];
 			// }
 
-			fitData[1]=Double.isNaN(fitData[1])?0:fitData[1];
-			fitData[2]=Double.isNaN(fitData[2])?0:fitData[2];
-			fitData[3]=Double.isNaN(fitData[3])?0:fitData[3];
-			fitData[4]=Double.isNaN(fitData[4])?0:fitData[4];
-			fitData[5]=Double.isNaN(fitData[5])?0:fitData[5];
-			fitData[6]=Double.isNaN(fitData[6])?0:fitData[6];
+			for (int index=1;index<7;index++){
+				fitData[index]=Double.isNaN(fitData[index])?0:fitData[index];
+				fitData[index] = (fitData[index] < thresholdForZeroInitiation) ? 0 : fitData[index];
+			}
+			// fitData[1]=Double.isNaN(fitData[1])?0:fitData[1];
+			// fitData[2]=Double.isNaN(fitData[2])?0:fitData[2];
+			// fitData[3]=Double.isNaN(fitData[3])?0:fitData[3];
+			// fitData[4]=Double.isNaN(fitData[4])?0:fitData[4];
+			// fitData[5]=Double.isNaN(fitData[5])?0:fitData[5];
+			// fitData[6]=Double.isNaN(fitData[6])?0:fitData[6];
 
-			fitData[1] = (fitData[1] < thresholdForZeroInitiation) ? 0 : fitData[1];
-			fitData[2] = (fitData[2] < thresholdForZeroInitiation) ? 0 : fitData[2];
-			fitData[3] = (fitData[3] < thresholdForZeroInitiation) ? 0 : fitData[3];
-			fitData[4] = (fitData[4] < thresholdForZeroInitiation) ? 0 : fitData[4];
-			fitData[5] = (fitData[5] < thresholdForZeroInitiation) ? 0 : fitData[5];
-			fitData[6] = (fitData[6] < thresholdForZeroInitiation) ? 0 : fitData[6];
+			// fitData[1] = (fitData[1] < thresholdForZeroInitiation) ? 0 : fitData[1];
+			// fitData[2] = (fitData[2] < thresholdForZeroInitiation) ? 0 : fitData[2];
+			// fitData[3] = (fitData[3] < thresholdForZeroInitiation) ? 0 : fitData[3];
+			// fitData[4] = (fitData[4] < thresholdForZeroInitiation) ? 0 : fitData[4];
+			// fitData[5] = (fitData[5] < thresholdForZeroInitiation) ? 0 : fitData[5];
+			// fitData[6] = (fitData[6] < thresholdForZeroInitiation) ? 0 : fitData[6];
 
-		} else {
+		} 
+	
+
+		
+		else {
 
 			if (usePhasortoInitialize && isPhasorFitDone && (cycleNum == 0)) {// this should be for the first cycle
 																				// only,
@@ -946,6 +975,7 @@ public class AzeroCurveFitter {
 		arrayChC = new double[imageW][imageH][numCycles];
 		arrayChD = new double[imageW][imageH][numCycles];
 		arrayChE = new double[imageW][imageH][numCycles];
+		double [][][]arrayChi2=new double[imageW][imageH][numCycles];
 		for (int cyc = 0; cyc < numCycles; cyc++) {
 			for (int y = 0; y < imageH; y++) {
 				for (int x = 0; x < imageW; x++) {
@@ -974,6 +1004,11 @@ public class AzeroCurveFitter {
 					} else {
 						arrayChE[x][y][cyc] = Double.NaN;
 					}
+					if (!Double.isNaN(Chi2G[x][y][cyc])) {
+						arrayChi2[x][y][cyc] = Chi2G[x][y][cyc];
+					} else {
+						arrayChi2[x][y][cyc] = Double.NaN;
+					}
 				}
 			}
 		}
@@ -983,6 +1018,8 @@ public class AzeroCurveFitter {
 		Photoswitching_Phasor_Plotter.statusMessageArea
 				.update(Photoswitching_Phasor_Plotter.statusMessageArea.getGraphics());
 
+		
+		createUnmixedImage("chi2 image", arrayChi2);
 		if (useChA)
 			createUnmixedImage(chA_name, arrayChA);
 		if (useChB)

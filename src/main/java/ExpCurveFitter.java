@@ -384,6 +384,7 @@ public class ExpCurveFitter {
 				final int cycleNum = cycle;
 				final int height = imageH;
 				final int width = imageW;
+				
 				// Concurrently run in as many threads as CPUs
 				threads[ithread] = new Thread() {
 					{
@@ -392,8 +393,8 @@ public class ExpCurveFitter {
 
 					@Override
 					public void run() {
-						for (int y = threadIndex * height / threads.length; y < (threadIndex + 1) * height
-								/ threads.length; y++) {
+						for (int y = threadIndex * height / threads.length, count=0; y < (threadIndex + 1) * height
+								/ threads.length; y++,count++) {
 							// the image is divided into equal sections based on the number of threads
 							// (CPUs)
 							// thus each cpu analyzes a different section of the image
@@ -456,9 +457,6 @@ public class ExpCurveFitter {
 									// or not
 
 
-
-
-
 								}
 								pixelsArrayOfArrays[threadIndex] = UtilityFunction.subtractValueFromArray(
 										pixelsArrayOfArrays[threadIndex], ((cameraOffset * binFactor * binFactor)));
@@ -473,8 +471,10 @@ public class ExpCurveFitter {
 										pixelsArrayOfArrays[threadIndex], firstframeint, lastframeint);
 								// to provide an initial estimate of the rate constant
 
+								
 								double[] fitparam = initExpFittingComponents(firstframeint, lastframeint, tau, cycleNum,
-										x, y);
+										x, y,count==0);
+
 
 								if (firstframeint - lastframeint < PixelThresholdCutOff) {
 									// fill arrays with NaN if the threshold is not met
@@ -511,6 +511,19 @@ public class ExpCurveFitter {
 									double[] fittedParam = fitExponentialFunction(timeDataArrayOfArrays[threadIndex],
 											pixelsArrayOfArrays[threadIndex], fitparam, maxiteration);
 									double Chi2 = fittedParam[0];
+
+									//refit
+									if ((Chi2 > Chi2CutOff)) {
+										// |(fittedParam[2]<thresholdIntensity)|(fittedParam[3]<thresholdIntensity)|(fittedParam[4]<thresholdIntensity)|(fittedParam[1]<thresholdIntensity)
+
+										double guessVal = (firstframeint - lastframeint) / 3;
+
+										double[] fttDataZeroInit={lastframeint,guessVal,1 / tau,guessVal,1 / tau,guessVal,1 / tau};
+										fittedParam = fitExponentialFunction(timeDataArrayOfArrays[threadIndex],
+												pixelsArrayOfArrays[threadIndex], fttDataZeroInit, maxiteration * 2);
+									}
+									Chi2 = fittedParam[0];
+
 									if (Chi2 < Chi2CutOff) {
 										if (fitTriple) {
 											Chi2G[x][y][cycleNum] = (float) fittedParam[0];
@@ -619,7 +632,7 @@ public class ExpCurveFitter {
 	// *******************Utilities*******************************
 
 	private double[] initExpFittingComponents(double firstframeint, double lastframeint, double tau, int cycleNum,
-			int x, int y) {
+			int x, int y, boolean isFirstLine) {
 
 		double guess_o = 0;
 		double guess_a1 = 0;
@@ -628,6 +641,8 @@ public class ExpCurveFitter {
 		double guess_k2 = 0;
 		double guess_a3 = 0;
 		double guess_k3 = 0;
+
+		double thresholdForZeroInitiation = 1;
 
 		// initialization
 
@@ -666,13 +681,52 @@ public class ExpCurveFitter {
 
 		} else {
 			if (fitTriple) {
+
+				double guessVal=(firstframeint - lastframeint) / 3;
 				guess_o = lastframeint;
-				guess_a1 = (firstframeint - lastframeint) / 3;
+				guess_a1 = guessVal;
 				guess_k1 = 1 / tau;
-				guess_a2 = (firstframeint - lastframeint) / 3;
+				guess_a2 = guessVal;
 				guess_k2 = 1 / tau;
-				guess_a3 = (firstframeint - lastframeint) / 3;
+				guess_a3 = guessVal;
 				guess_k3 = 1 / tau;
+
+				if ((cycleNum == 0) && (x > 0) && (y > 0)&&(!isFirstLine)) {
+				//if ((cycleNum == 0) && (x > 0)) {
+
+					// These values include nan values
+					guess_o = (offsetDataG[x - 1][y][0]+offsetDataG[x][y-1][0]+offsetDataG[x-1][y-1][0])/3;
+					guess_a1 = (a1DataG[x - 1][y][0]+a1DataG[x][y-1][0]+a1DataG[x-1][y-1][0])/3;
+					guess_a2 = (a2DataG[x - 1][y][0]+a2DataG[x][y-1][0]+a2DataG[x-1][y-1][0])/3;
+					guess_a3 = (a3DataG[x - 1][y][0]+a3DataG[x][y-1][0]+a3DataG[x-1][y-1][0])/3;
+					guess_k1 = (k1DataG[x - 1][y][0]+k1DataG[x][y-1][0]+k1DataG[x-1][y-1][0])/3;
+					guess_k2 = (k2DataG[x - 1][y][0]+k2DataG[x][y-1][0]+k2DataG[x-1][y-1][0])/3;
+					guess_k3 = (k3DataG[x - 1][y][0]+k3DataG[x][y-1][0]+k3DataG[x-1][y-1][0])/3;
+
+					// guess_o = (offsetDataG[x - 1][y][0]);
+					// guess_a1 = (a1DataG[x - 1][y][0]);
+					// guess_a2 = (a2DataG[x - 1][y][0]);
+					// guess_a3 = (a3DataG[x - 1][y][0]);
+					// guess_k1 = (k1DataG[x - 1][y][0]);
+					// guess_k2 = (k2DataG[x - 1][y][0]);
+					// guess_k3 = (k3DataG[x - 1][y][0]);
+
+					guess_o=Double.isNaN(guess_o)?lastframeint:guess_o;
+					guess_a1=Double.isNaN(guess_a1)?guessVal:guess_a1;
+					guess_a2=Double.isNaN(guess_a2)?guessVal:guess_a2;
+					guess_a3=Double.isNaN(guess_a3)?guessVal:guess_a3;
+					guess_k1=Double.isNaN(guess_k1)?(1/tau):guess_k1;
+					guess_k2=Double.isNaN(guess_k2)?(1/tau):guess_k2;
+					guess_k3=Double.isNaN(guess_k3)?(1/tau):guess_k3;
+		
+					guess_o = (guess_o < thresholdForZeroInitiation) ? lastframeint : guess_o;
+					guess_a1 = (guess_a1 < thresholdForZeroInitiation) ? guessVal : guess_a1;
+					guess_a2 = (guess_a2 < thresholdForZeroInitiation) ? guessVal : guess_a2;
+					guess_a3 = (guess_a3 < thresholdForZeroInitiation) ? guessVal : guess_a3;
+					guess_k1 = (guess_k1 < thresholdForZeroInitiation) ? (1/tau) : guess_k1;
+					guess_k2 = (guess_k2 < thresholdForZeroInitiation) ? (1/tau) : guess_k2;
+					guess_k3 = (guess_k3 < thresholdForZeroInitiation) ? (1/tau) : guess_k3;
+				}
 
 			}
 			if (fitDouble) {
