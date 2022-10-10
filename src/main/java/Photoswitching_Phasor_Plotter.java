@@ -1997,6 +1997,8 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
             imageW = img2.getWidth();
             imageD = img2.getBitDepth();
             imageZ = img2.getSize();
+
+            IJ.log("examining pixels "+Integer.toString(imageH)+" W "+Integer.toString(imageW)+" Z "+Integer.toString(imageZ));
             final int currentchannel = img.getC() - 1;
             final int currentZ = img.getZ() - 1;
             final int nSlices = img.getNSlices();
@@ -3743,6 +3745,7 @@ public class Photoswitching_Phasor_Plotter extends javax.swing.JFrame implements
     	phasorFitter.setMedianFilter(medianFilter, applicationsMedianFilter);
         phasorFitter.setBinning(useBinning);
         phasorFitter.setNumBins(numBins);
+        phasorFitter.setManualTime(useManualTime);
         phasorFitter.setBackground(backgroundSubtract);
         if(backgroundSubtract){
             phasorFitter.setBackgroundValue(backGroundValues);

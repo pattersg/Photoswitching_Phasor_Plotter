@@ -755,7 +755,7 @@ public class ExpCurveFitter {
 
 	}
 
-	private double[] getTimingPerPlane(String arg, int tPoints, int currZ, int currCh) throws Exception {
+	private double[] getTimingPerPlaneBackup(String arg, int tPoints, int currZ, int currCh) throws Exception {
 		// this uses Bioformats to get the timing of the images
 		// from the start of the experiment
 		// if the plane delta T is not found, user is prompted for a time interval input
@@ -813,6 +813,80 @@ public class ExpCurveFitter {
 		}
 		return timeStampsToReturn;
 	}
+
+
+
+	private double[] getTimingPerPlane(String arg, int tPoints, int currZ, int currCh) throws Exception {
+        //this uses Bioformats to get the timing of the images
+        //from the start of the experiment
+        //if the plane delta T is not found, user is prompted for a time interval input
+        String fExt = arg.substring(arg.indexOf("."), arg.length());
+        if (fExt.contains(" ") && fExt.indexOf(" ") < arg.length()) {
+            fExt = fExt.substring(0, fExt.indexOf(" "));
+        }
+        String id2 = arg.substring(0, arg.indexOf(".")) + fExt;
+        double[] timeStampsToReturn = new double[tPoints];
+        IFormatReader reader = null;
+        int series = 0;
+        try {
+            ServiceFactory factory = new ServiceFactory();
+            OMEXMLService service = factory.getInstance(OMEXMLService.class);
+            IMetadata meta = service.createOMEXMLMetadata();
+            // create format reader
+            reader = new ImageReader();
+            reader.setMetadataStore(meta);
+            // initialize file
+            reader.setId(id2);
+
+            int seriesCount = reader.getSeriesCount();
+
+            if (series < seriesCount) {
+                reader.setSeries(series);
+            }
+            series = reader.getSeries();
+            int planeCount = meta.getPlaneCount(series);
+            int tCounter = 0;
+            for (int i = 0; i < planeCount; i++) {
+                Time deltaT = meta.getPlaneDeltaT(series, i);
+                if (deltaT == null) {
+                    continue;
+                }
+                // convert plane ZCT coordinates into image plane index
+                int z = meta.getPlaneTheZ(series, i).getValue();
+                int c = meta.getPlaneTheC(series, i).getValue();
+                int t = meta.getPlaneTheT(series, i).getValue();
+                if (z == currZ && c == currCh) {
+                    timeStampsToReturn[tCounter] = deltaT.value(UNITS.SECOND).doubleValue();
+                    tCounter++;
+                }
+            }
+            if (planeCount == 0) {
+                GenericDialog gd2 = new GenericDialog("Problem with metadata");
+                gd2.addMessage("Time information from metadata was not found");
+                gd2.addMessage("Would you like to enter the time interval manually?");
+                gd2.addNumericField("Time between images in seconds", 0.050, 3);
+                gd2.showDialog();
+                if (gd2.wasCanceled()) {
+                    return null;
+                }
+                double userDeltaT = gd2.getNextNumber();
+                for (int t = 0; t < timeStampsToReturn.length; t++) {
+                    timeStampsToReturn[t] = t * userDeltaT;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (reader != null) {
+                    reader.close();
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        return timeStampsToReturn;
+    }
 
 	/**
 	 * Create a Thread[] array as large as the number of processors available. From
